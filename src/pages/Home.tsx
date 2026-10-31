@@ -30,7 +30,7 @@ export function Home() {
   return (
     <>
       <section className="relative overflow-hidden border-b border-line bg-surface">
-        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-[28rem] w-[28rem] rounded-full bg-marigold-soft opacity-70 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-[28rem] w-[28rem] rounded-full bg-marigold-soft opacity-70 blur-3xl dark:opacity-40" />
         <div className="wrap relative grid gap-10 py-12 md:grid-cols-[1.15fr_1fr] md:items-center md:py-20">
           <div className="grid gap-6">
             <p className="eyebrow text-brand">Flatshares across {stats.cities} Indian cities</p>
@@ -77,7 +77,7 @@ export function Home() {
             </div>
           </div>
 
-          <div aria-hidden className="relative hidden md:block">
+          <div aria-hidden className="relative hidden pt-8 md:block">
             <div className="card rotate-[-2deg] overflow-hidden shadow-xl">
               <RoomArt seed="hero-room" className="h-56 w-full" />
               <div className="grid gap-2 p-5">
@@ -86,7 +86,7 @@ export function Home() {
                 <div className="flex gap-1.5"><span className="tag tag-ok">92% fit</span><span className="tag">No restriction</span><span className="tag tag-ok"><LuBadgeCheck />ID verified</span></div>
               </div>
             </div>
-            <div className="card absolute -bottom-8 -left-8 w-64 rotate-[3deg] p-4 shadow-xl">
+            <div className="card absolute -right-3 top-0 w-56 rotate-[3deg] p-4 shadow-xl ring-1 ring-line">
               <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted">Why 92%</p>
               <ul className="grid gap-1.5 text-sm">
                 <li className="flex justify-between"><span>Kitchen</span><span className="font-bold text-ok">Match</span></li>

@@ -63,7 +63,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 <li key={n.to}>
                   <Link to={n.to} className={`relative inline-flex items-center gap-2 rounded-xl px-3 py-2 text-[0.95rem] font-semibold ${isActive(n.match) ? "bg-brand-soft text-brand" : "text-ink hover:bg-raised"}`}>
                     <n.icon aria-hidden />{n.label}
-                    {n.to === "/messages" && unread > 0 && <span className="ml-0.5 rounded-full bg-marigold px-1.5 text-xs font-bold text-ink">{unread}<span className="sr-only"> unread</span></span>}
+                    {n.to === "/messages" && unread > 0 && <span className="ml-0.5 rounded-full bg-marigold px-1.5 text-xs font-bold text-[#141738]">{unread}<span className="sr-only"> unread</span></span>}
                   </Link>
                 </li>
               ))}
@@ -73,7 +73,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <div className="hidden sm:block"><ThemeSwitch /></div>
             <Link to="/saved" className={`relative grid h-10 w-10 place-items-center rounded-xl ${path === "/saved" ? "bg-brand-soft text-brand" : "hover:bg-raised"}`} aria-label={`Saved rooms (${savedCount})`}>
               <LuBookmark aria-hidden size={20} />
-              {savedCount > 0 && <span aria-hidden className="absolute -right-0.5 -top-0.5 rounded-full bg-marigold px-1.5 text-[0.7rem] font-bold text-ink">{savedCount}</span>}
+              {savedCount > 0 && <span aria-hidden className="absolute -right-0.5 -top-0.5 rounded-full bg-marigold px-1.5 text-[0.7rem] font-bold text-[#141738]">{savedCount}</span>}
             </Link>
             <Link to="/profile" className={`inline-flex h-10 items-center gap-2 rounded-xl px-3 font-semibold ${path === "/profile" ? "bg-brand-soft text-brand" : "hover:bg-raised"}`}>
               <LuUser aria-hidden size={20} /><span className="hidden lg:inline">{hasProfile ? "Profile" : "Create profile"}</span><span className="sr-only lg:hidden">Profile</span>

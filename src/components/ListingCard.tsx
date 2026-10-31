@@ -19,7 +19,7 @@ export function ListingCard({ result, landmark, saved, onToggleSave, active, onA
         {l.photos[0]
           ? <img src={l.photos[0]} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
           : <RoomArt seed={l.id} className="absolute inset-0 h-full w-full" />}
-        <span className="absolute left-2 top-2 tag bg-surface/95 text-ink">{ROOM_TYPES[l.roomType]}</span>
+        <span className="absolute left-2 top-2 tag bg-surface/95 text-ink ring-1 ring-line">{ROOM_TYPES[l.roomType]}</span>
       </div>
       <div className="grid gap-3 p-4">
         <div className="flex items-start justify-between gap-3">
@@ -49,7 +49,7 @@ export function ListingCard({ result, landmark, saved, onToggleSave, active, onA
       <button
         type="button" onClick={onToggleSave} aria-pressed={saved}
         aria-label={saved ? `Remove ${l.title} from saved` : `Save ${l.title}`}
-        className={`absolute right-2 top-2 z-10 grid h-10 w-10 place-items-center rounded-full shadow @xl:left-[10.6rem] @xl:right-auto ${saved ? "bg-marigold text-ink" : "bg-surface/95 text-ink hover:bg-marigold-soft"}`}
+        className={`absolute right-2 top-2 z-10 grid h-10 w-10 place-items-center rounded-full shadow @xl:left-[10.6rem] @xl:right-auto ${saved ? "bg-marigold text-[#141738]" : "bg-surface/95 text-ink ring-1 ring-line hover:bg-marigold-soft"}`}
       >
         <LuBookmark aria-hidden className={saved ? "fill-current" : ""} />
       </button>

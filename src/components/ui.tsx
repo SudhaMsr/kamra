@@ -137,7 +137,7 @@ export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
 }
 
 export function FitBadge({ fit, compact }: { fit: Fit; compact?: boolean }) {
-  const tone = fit.pct >= 80 ? "bg-ok-soft text-ok" : fit.pct >= 50 ? "bg-marigold-soft text-ink" : "bg-warn-soft text-warn";
+  const tone = fit.pct >= 80 ? "bg-ok-soft text-ok" : fit.pct >= 50 ? "bg-marigold-soft text-ink dark:text-marigold" : "bg-warn-soft text-warn";
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.8rem] font-bold ${tone}`}>
       <span aria-hidden className="relative h-2 w-8 overflow-hidden rounded-full bg-current/20"><span className="absolute inset-y-0 left-0 rounded-full bg-current" style={{ width: `${fit.pct}%` }} /></span>
@@ -174,20 +174,25 @@ export function TrustTags({ l }: { l: Listing }) {
 }
 
 /* ---------- generated room artwork, used until the lister adds photos ---------- */
-const PALETTES = [["#2a31a0", "#e8930c", "#f3ead8"], ["#13703f", "#e8930c", "#e9f1ea"], ["#7a2f6b", "#f2b544", "#f4e7ee"], ["#0f5c78", "#ef8a5a", "#e3eef3"], ["#4a3d9e", "#f0c24b", "#eceaf7"]];
+// [furniture, accent, light-theme wall, dark-theme wall]
+const PALETTES = [
+  ["#2a31a0", "#e8930c", "#f3ead8", "#262c63"], ["#13703f", "#e8930c", "#e9f1ea", "#163a2d"], ["#7a2f6b", "#f2b544", "#f4e7ee", "#3a2140"],
+  ["#0f5c78", "#ef8a5a", "#e3eef3", "#16384a"], ["#4a3d9e", "#f0c24b", "#eceaf7", "#2b2660"],
+];
 export function RoomArt({ seed, className = "", label }: { seed: string; className?: string; label?: string }) {
   let h = 0; for (const c of seed) h = (h * 33 + c.charCodeAt(0)) >>> 0;
-  const [a, b, bg] = PALETTES[h % PALETTES.length];
+  const [a, b, bg, bgDark] = PALETTES[h % PALETTES.length];
   const win = 20 + (h % 30), bedX = 120 + ((h >> 3) % 60), rug = (h >> 5) % 2 === 0;
   return (
     <svg viewBox="0 0 320 200" role={label ? "img" : undefined} aria-label={label} aria-hidden={label ? undefined : true} className={className} preserveAspectRatio="xMidYMid slice">
-      <rect width="320" height="200" fill={bg} />
+      <rect width="320" height="200" fill={bg} className="dark:hidden" />
+      <rect width="320" height="200" fill={bgDark} className="hidden dark:inline" />
       <rect y="150" width="320" height="50" fill={a} opacity=".12" />
-      <rect x={win} y="28" width="70" height="62" rx="4" fill="#fff" opacity=".85" stroke={a} strokeWidth="4" />
+      <rect x={win} y="28" width="70" height="62" rx="4" fill="#fff" className="opacity-85 dark:opacity-25" stroke={a} strokeWidth="4" />
       <line x1={win + 35} y1="28" x2={win + 35} y2="90" stroke={a} strokeWidth="3" />
       <circle cx={win + 52} cy="48" r="9" fill={b} />
       {rug && <ellipse cx="200" cy="175" rx="80" ry="12" fill={b} opacity=".35" />}
-      <rect x={bedX} y="112" width="150" height="44" rx="8" fill={a} />
+      <rect x={bedX} y="112" width="150" height="44" rx="8" fill={a} className="dark:brightness-150" />
       <rect x={bedX} y="100" width="14" height="60" rx="4" fill={a} />
       <rect x={bedX + 20} y="102" width="42" height="18" rx="7" fill="#fff" />
       <rect x={bedX + 66} y="104" width="80" height="12" rx="5" fill={b} />

@@ -54,21 +54,37 @@ def test_page_structure_signed_in(page: Page, route):
     assert page.evaluate(AUDIT) == []
 
 
+CONTRAST = """() => {
+  const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1; const cx = canvas.getContext('2d', { willReadFrequently: true });
+  const rgba = (c) => { cx.clearRect(0, 0, 1, 1); cx.fillStyle = '#000'; cx.fillStyle = c; cx.fillRect(0, 0, 1, 1); const d = cx.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2], d[3] / 255]; };
+  const lum = ([r, g, b]) => [r, g, b].map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+  const mix = (top, base) => [0, 1, 2].map((i) => top[i] * top[3] + base[i] * (1 - top[3])).concat(1);
+  const bgOf = (el) => { const layers = []; while (el) { const c = rgba(getComputedStyle(el).backgroundColor); if (c[3] > 0) { layers.push(c); if (c[3] >= 0.99) break; } el = el.parentElement; }
+    let base = layers.length && layers[layers.length - 1][3] >= 0.99 ? layers.pop() : rgba(getComputedStyle(document.body).backgroundColor);
+    for (const l of layers.reverse()) base = mix(l, base); return base; };
+  const bad = [];
+  for (const el of document.querySelectorAll('body *')) {
+    if (!el.getClientRects().length || el.closest('[aria-hidden="true"], svg, .sr-only')) continue;
+    const text = [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent.trim()).join(' ').trim();
+    if (!text) continue;
+    const cs = getComputedStyle(el); if (cs.visibility === 'hidden' || +cs.opacity === 0) continue;
+    const bg = bgOf(el); let fg = rgba(cs.color); if (fg[3] < 1) fg = mix(fg, bg);
+    const a = lum(fg), b = lum(bg), ratio = (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    const size = parseFloat(cs.fontSize), large = size >= 24 || (size >= 18.66 && +cs.fontWeight >= 700);
+    if (ratio < (large ? 3 : 4.5)) bad.push(`${ratio.toFixed(2)} "${text.slice(0, 30)}"`);
+  }
+  return [...new Set(bad)];
+}"""
+
+
 @pytest.mark.parametrize("theme", ["light", "dark"])
-def test_text_contrast_meets_aa(page: Page, theme):
-    """Computes WCAG contrast for body text, muted text and primary buttons against their real backgrounds."""
-    go(page)
+@pytest.mark.parametrize("route", ["/", "/search", "/rooms/d004", "/flatmates", "/profile", "/post", "/safety"])
+def test_all_text_meets_wcag_aa_contrast(page: Page, theme, route):
+    """Every visible text node on the page, against its real composited background, in both themes."""
+    create_profile(page)
     page.get_by_role("radio", name=f"{theme.capitalize()} theme").first.click()
-    go(page, "/search")
-    ratios = page.evaluate("""() => {
-      const lum = (c) => { const [r,g,b] = c.match(/\\d+(\\.\\d+)?/g).slice(0,3).map(Number).map(v => { v /= 255; return v <= 0.03928 ? v/12.92 : ((v+0.055)/1.055)**2.4; }); return 0.2126*r + 0.7152*g + 0.0722*b; };
-      const bg = (el) => { while (el) { const c = getComputedStyle(el).backgroundColor; if (c && !c.endsWith(', 0)') && c !== 'transparent') return c; el = el.parentElement; } return getComputedStyle(document.body).backgroundColor; };
-      const ratio = (el) => { const a = lum(getComputedStyle(el).color), b = lum(bg(el)); return (Math.max(a,b)+0.05)/(Math.min(a,b)+0.05); };
-      const pick = (sel) => { const el = document.querySelector(sel); return el ? ratio(el) : null; };
-      return { body: pick('#main h1'), muted: pick('#main p.text-muted'), primary: pick('.btn-primary'), tag: pick('.tag-ok') };
-    }""")
-    for k, v in ratios.items():
-        assert v is None or v >= 4.5, f"{theme} {k} contrast {v:.2f} < 4.5"
+    go(page, route)
+    assert page.evaluate(CONTRAST) == []
 
 
 def test_keyboard_skip_link_and_radio_arrows(page: Page):

@@ -42,7 +42,7 @@ export function Messages({ threadId }: { threadId?: string }) {
                     </span>
                     <span className="truncate text-sm text-muted">{listing ? listing.locality + " · " : ""}{last ? (last.from === "me" ? "You: " : "") + last.text : "No messages yet"}</span>
                   </span>
-                  {unread > 0 && <span className="rounded-full bg-marigold px-2 text-xs font-bold text-ink">{unread}<span className="sr-only"> unread</span></span>}
+                  {unread > 0 && <span className="rounded-full bg-marigold px-2 text-xs font-bold text-[#141738]">{unread}<span className="sr-only"> unread</span></span>}
                 </Link>
               </li>
             );

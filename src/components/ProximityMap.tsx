@@ -45,20 +45,20 @@ export function ProximityMap({ origin, radiusKm, results, activeId, onActivate, 
           <rect width="100" height="100" fill={`url(#${gridId})`} />
           {rings(radiusKm).map((km) => (
             <g key={km}>
-              <circle cx="50" cy="50" r={(km / radiusKm) * 46} fill="none" stroke="var(--map-ring)" strokeWidth=".35" strokeDasharray={km === radiusKm ? "0" : "1.2 1"} />
-              <text x={50 + (km / radiusKm) * 46 * 0.707 + 0.8} y={50 - (km / radiusKm) * 46 * 0.707 - 0.8} fontSize="2.6" fill="var(--muted)" fontFamily="var(--font-mono)">{km} km</text>
+              <circle cx="50" cy="50" r={(km / radiusKm) * 46} fill="none" stroke="var(--map-ring)" strokeWidth=".45" strokeDasharray={km === radiusKm ? "0" : "1.2 1"} />
+              <text x={50 + (km / radiusKm) * 46 * 0.707 + 0.8} y={50 - (km / radiusKm) * 46 * 0.707 - 0.8} fontSize="3.1" fill="var(--ink)" opacity=".8" fontWeight="600" fontFamily="var(--font-mono)">{km} km</text>
             </g>
           ))}
-          <circle cx="50" cy="50" r="46" fill="var(--brand)" opacity=".05" />
-          <g transform="translate(92 9)">
+          <circle cx="50" cy="50" r="46" fill="var(--brand)" opacity=".07" />
+          <g transform="translate(8 9)">
             <path d="M0-4 2.4 2.5 0 1.2-2.4 2.5z" fill="var(--ink)" />
-            <text y="6.6" fontSize="3" textAnchor="middle" fill="var(--ink)" fontWeight="700">N</text>
+            <text y="7" fontSize="3.6" textAnchor="middle" fill="var(--ink)" fontWeight="700">N</text>
           </g>
           <g transform="translate(5 94)">
             <line x1="0" x2={(scaleKm / radiusKm) * 46} y1="0" y2="0" stroke="var(--ink)" strokeWidth=".6" />
             <line x1="0" x2="0" y1="-1.2" y2="1.2" stroke="var(--ink)" strokeWidth=".6" />
             <line x1={(scaleKm / radiusKm) * 46} x2={(scaleKm / radiusKm) * 46} y1="-1.2" y2="1.2" stroke="var(--ink)" strokeWidth=".6" />
-            <text y="-2" fontSize="2.6" fill="var(--ink)" fontFamily="var(--font-mono)">{scaleKm} km</text>
+            <text y="-2" fontSize="3.1" fontWeight="600" fill="var(--ink)" fontFamily="var(--font-mono)">{scaleKm} km</text>
           </g>
         </svg>
 
@@ -79,7 +79,7 @@ export function ProximityMap({ origin, radiusKm, results, activeId, onActivate, 
                   onMouseEnter={() => onActivate(r.listing.id)} onMouseLeave={() => onActivate(null)}
                   onFocus={() => onActivate(r.listing.id)} onBlur={() => onActivate(null)}
                   aria-label={`${r.listing.title}, ${r.listing.locality}, ${short(r.listing.rent)} a month, ${formatDistance(r.distance)} away`}
-                  className={`pointer-events-auto absolute -translate-x-1/2 -translate-y-full rounded-full px-2 py-0.5 font-mono text-[0.72rem] font-semibold shadow transition-transform ${on ? "z-20 scale-110 bg-marigold text-ink" : "z-10 bg-surface text-ink ring-1 ring-line hover:bg-marigold"}`}
+                  className={`pointer-events-auto absolute -translate-x-1/2 -translate-y-full rounded-full px-2 py-0.5 font-mono text-[0.72rem] font-semibold shadow transition-transform ${on ? "z-20 scale-110 bg-marigold text-[#141738]" : "z-10 bg-surface text-ink ring-1 ring-map-ring hover:bg-marigold hover:text-[#141738]"}`}
                   style={{ left: `${p.left}%`, top: `${p.top}%` }}
                 >
                   {short(r.listing.rent)}
