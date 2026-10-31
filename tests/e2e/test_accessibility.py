@@ -92,6 +92,34 @@ def test_all_text_meets_wcag_aa_contrast(page: Page, theme, route):
     assert page.evaluate(CONTRAST) == []
 
 
+CONTROL_EDGES = """() => {
+  const canvas = document.createElement('canvas'); canvas.width = canvas.height = 1; const cx = canvas.getContext('2d', { willReadFrequently: true });
+  const rgba = (c) => { cx.clearRect(0, 0, 1, 1); cx.fillStyle = '#000'; cx.fillStyle = c; cx.fillRect(0, 0, 1, 1); const d = cx.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2], d[3] / 255]; };
+  const lum = ([r, g, b]) => [r, g, b].map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }).reduce((s, v, i) => s + v * [0.2126, 0.7152, 0.0722][i], 0);
+  const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); };
+  const bgBehind = (el) => { el = el.parentElement; while (el) { const c = rgba(getComputedStyle(el).backgroundColor); if (c[3] >= 0.99) return c; el = el.parentElement; } return rgba(getComputedStyle(document.body).backgroundColor); };
+  const bad = [];
+  for (const el of document.querySelectorAll('input:not([type=hidden]):not(.sr-only), select, textarea, .chip')) {
+    if (!el.getClientRects().length) continue;
+    const cs = getComputedStyle(el); const behind = bgBehind(el);
+    // a control is identifiable if either its border or its own fill stands out 3:1 from what's behind it
+    const edge = Math.max(ratio(rgba(cs.borderTopColor), behind), ratio(rgba(cs.backgroundColor)[3] > 0.5 ? rgba(cs.backgroundColor) : behind, behind));
+    if (edge < 3) bad.push(`${edge.toFixed(2)} ${el.tagName.toLowerCase()} "${(el.textContent || el.id).trim().slice(0, 20)}"`);
+  }
+  return [...new Set(bad)];
+}"""
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
+@pytest.mark.parametrize("route", ["/", "/search", "/profile", "/post"])
+def test_form_controls_and_filters_are_clearly_visible(page: Page, theme, route):
+    """WCAG 1.4.11: the edges of inputs, dropdowns and filter chips need 3:1 contrast with their surroundings."""
+    create_profile(page)
+    page.get_by_role("radio", name=f"{theme.capitalize()} theme").first.click()
+    go(page, route)
+    assert page.evaluate(CONTROL_EDGES) == []
+
+
 def test_keyboard_skip_link_and_radio_arrows(page: Page):
     go(page, "/search")
     page.keyboard.press("Tab")

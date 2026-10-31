@@ -25,6 +25,8 @@
   --warn-soft: #fbe5da;
   --map-land: #eef0f6;
   --map-ring: #c9cde0;
+  --field: #ffffff;
+  --field-line: #767ca3;
   color-scheme: light;
 }
 [data-theme="dark"] {
@@ -47,6 +49,8 @@
   --warn-soft: #4d2619;
   --map-land: #181c40;
   --map-ring: #4a5290;
+  --field: #1c2148;
+  --field-line: #6670b8;
   color-scheme: dark;
 }
 
@@ -69,6 +73,8 @@
   --color-warn-soft: var(--warn-soft);
   --color-map-land: var(--map-land);
   --color-map-ring: var(--map-ring);
+  --color-field: var(--field);
+  --color-field-line: var(--field-line);
   --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -82,6 +88,7 @@
   ::selection { background: var(--marigold-soft); color: var(--ink); }
   input, select, textarea, button { font: inherit; color: inherit; }
   [hidden] { display: none !important; }
+  select option, select optgroup { background-color: var(--surface); color: var(--ink); }
 }
 
 /* Component classes. Declared with @utility so they compose with variants and can be @applied. */
@@ -95,12 +102,12 @@
 @utility hint { @apply text-[0.82rem] text-muted; }
 @utility error { @apply text-[0.82rem] font-semibold text-warn; }
 @utility input {
-  @apply w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-ink placeholder:text-muted focus:border-brand focus:outline-none focus:ring-3 focus:ring-brand/25;
+  @apply w-full rounded-xl border-[1.5px] border-field-line bg-field px-3.5 py-2.5 font-medium text-ink placeholder:font-normal placeholder:text-muted hover:border-brand focus:border-brand focus:outline-none focus:ring-3 focus:ring-brand/30;
   &[aria-invalid="true"] { @apply border-warn; }
 }
 @utility card { @apply rounded-2xl border border-line bg-surface; }
 @utility chip {
-  @apply inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-semibold text-ink hover:border-brand;
+  @apply inline-flex cursor-pointer items-center gap-1.5 rounded-full border-[1.5px] border-field-line bg-field px-3 py-1.5 text-sm font-semibold text-ink hover:border-brand hover:bg-brand-soft;
   &[aria-pressed="true"], &[aria-checked="true"] { @apply border-brand bg-brand text-brand-ink; }
 }
 @utility tag { @apply inline-flex items-center gap-1 rounded-md bg-raised px-2 py-0.5 text-[0.78rem] font-semibold text-muted; }

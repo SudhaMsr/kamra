@@ -41,27 +41,27 @@ export function Home() {
               Search rooms by distance from your office or metro, then see how each household fits you on food, guests, smoking and work hours before you message.
             </p>
 
-            <form onSubmit={submit} className="card grid gap-3 p-3 shadow-sm sm:grid-cols-[1fr_1.3fr_0.9fr_auto] sm:items-end sm:p-2 sm:pl-4" aria-label="Search rooms">
+            <form onSubmit={submit} className="card grid gap-3 p-4 shadow-sm sm:grid-cols-2 sm:items-end" aria-label="Search rooms">
               <div className="field">
-                <label htmlFor="h-city" className="text-xs font-bold uppercase tracking-wider text-muted">City</label>
-                <select id="h-city" value={city} className="input sm:border-0 sm:bg-transparent sm:px-0 sm:py-1 sm:focus:ring-0"
+                <label htmlFor="h-city" className="label">City</label>
+                <select id="h-city" value={city} className="input"
                   onChange={(e) => { const c = e.target.value as City; setCity(c); setNear(landmarksIn(c)[0].id); }}>
                   {CITIES.map((c) => <option key={c}>{c}</option>)}
                 </select>
               </div>
               <div className="field">
-                <label htmlFor="h-near" className="text-xs font-bold uppercase tracking-wider text-muted">Near</label>
-                <select id="h-near" value={near} onChange={(e) => setNear(e.target.value)} className="input sm:border-0 sm:bg-transparent sm:px-0 sm:py-1 sm:focus:ring-0">
+                <label htmlFor="h-near" className="label">Near</label>
+                <select id="h-near" value={near} onChange={(e) => setNear(e.target.value)} className="input">
                   {landmarksIn(city).map((l) => <option key={l.id} value={l.id}>{l.name} ({KIND_LABEL[l.kind]})</option>)}
                 </select>
               </div>
               <div className="field">
-                <label htmlFor="h-max" className="text-xs font-bold uppercase tracking-wider text-muted">Max rent</label>
+                <label htmlFor="h-max" className="label">Max rent (₹)</label>
                 <input id="h-max" inputMode="numeric" pattern="[0-9]*" placeholder="Any" value={max}
                   onChange={(e) => setMax(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                  className="input sm:border-0 sm:bg-transparent sm:px-0 sm:py-1 sm:focus:ring-0" />
+                  className="input" />
               </div>
-              <button type="submit" className="btn-primary h-12 px-6">Search<LuArrowRight aria-hidden /></button>
+              <button type="submit" className="btn-primary h-[2.9rem] px-6 sm:w-full">Search<LuArrowRight aria-hidden /></button>
             </form>
 
             <div className="flex flex-wrap items-center gap-2 text-sm">
