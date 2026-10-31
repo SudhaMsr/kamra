@@ -35,4 +35,4 @@ KAMRA_URL=https://sudhamsr.github.io/kamra/ npm run test:e2e   # against the liv
 
 ## Deploy
 
-Every push to `main` runs `.github/workflows/deploy.yml`: typecheck, unit tests, build, end-to-end tests, deploy to GitHub Pages, then the end-to-end suite again against the live URL. A failing step stops the deploy.
+Every push and pull request runs `.github/workflows/deploy.yml`: typecheck, unit tests, build and end-to-end tests. Deploying is manual: in GitHub, open **Actions → Test (and deploy on request) → Run workflow**. That runs the same checks, deploys to GitHub Pages, then re-runs the end-to-end suite against the live URL. A failing step stops the deploy.

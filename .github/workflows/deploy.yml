@@ -1,4 +1,4 @@
-name: Test and deploy
+name: Test (and deploy on request)
 
 on:
   push:
@@ -55,14 +55,15 @@ jobs:
           python -m pytest tests/e2e -q
 
       - uses: actions/upload-pages-artifact@v3
-        if: github.ref == 'refs/heads/main'
+        if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
         with:
           path: dist
 
   deploy:
     name: Deploy to GitHub Pages
     needs: test
-    if: github.ref == 'refs/heads/main'
+    # Deploys only when started by hand (Actions → this workflow → Run workflow). Pushes just run the tests.
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
