@@ -47,9 +47,9 @@ export function PostRoom() {
   if (!profile) {
     return (
       <div className="wrap max-w-2xl py-10">
-        <Empty page icon={<LuUser size={26} />} title="Create your profile first"
+        <Empty page icon={<LuUser size={26} />} title="Sign up to list a room"
           body="Flatmates want to know who they'd live with. Your profile takes two minutes and is shown with your listing."
-          action={<Link to="/profile?next=%2Fpost" className="btn-primary">Create profile</Link>} />
+          action={<div className="flex flex-wrap justify-center gap-2"><Link to="/signup?next=%2Fpost" className="btn-primary">Create an account</Link><Link to="/login?next=%2Fpost" className="btn-secondary">Log in</Link></div>} />
       </div>
     );
   }

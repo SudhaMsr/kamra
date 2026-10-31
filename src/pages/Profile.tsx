@@ -1,22 +1,34 @@
 import { useState, type FormEvent } from "react";
-import { LuBadgeCheck, LuRotateCcw } from "react-icons/lu";
-import { ChoiceGroup, Dialog, Field, Toggle, useToast } from "../components/ui";
-import { isPersistent, resetAll, saveProfile, useStore } from "../data/store";
+import { LuBadgeCheck, LuLogOut, LuTrash2, LuUser } from "react-icons/lu";
+import { ChoiceGroup, Dialog, Empty, Field, Toggle, useToast } from "../components/ui";
+import { ROLES, deleteAccount, isPersistent, logOut, saveProfile, setRole, useStore, type Role } from "../data/store";
 import { CITIES, DIETS, GUESTS, Profile as ProfileZ, SHIFTS, fieldErrors, type City, type Profile } from "../domain/types";
-import { navigate, useLocation, useTitle } from "../lib/router";
+import { errorMessage } from "../lib/errors";
+import { Link, navigate, useTitle } from "../lib/router";
 
 type Form = Omit<Profile, "budget" | "age"> & { budget: string; age: string };
-const DEFAULTS: Form = { name: "", gender: "woman", diet: "veg-nonveg", smokes: false, drinks: false, guests: "day", shift: "day", budget: "15000", city: "Bengaluru", age: "", work: "", about: "", lookingForRoom: true };
 
 export function ProfilePage() {
-  const existing = useStore((s) => s.profile);
-  const { query } = useLocation();
-  const next = query.get("next");
+  const account = useStore((s) => s.account);
+  const profile = useStore((s) => s.profile);
+  useTitle(account ? "Your profile" : "Your account");
+  if (!account || !profile) {
+    return (
+      <div className="wrap grid max-w-2xl py-10">
+        <Empty page icon={<LuUser size={26} />} title="Sign up to get fit scores"
+          body="Tell us how you live once, and every room shows how well its household fits you. It takes about two minutes."
+          action={<div className="flex flex-wrap justify-center gap-2"><Link to="/signup" className="btn-primary">Create an account</Link><Link to="/login" className="btn-secondary">Log in</Link></div>} />
+      </div>
+    );
+  }
+  return <ProfileForm key={account.id} existing={profile} email={account.email} role={account.role} />;
+}
+
+function ProfileForm({ existing, email, role }: { existing: Profile; email: string; role: Role }) {
   const toast = useToast();
-  const [f, setF] = useState<Form>(existing ? { ...existing, budget: String(existing.budget), age: String(existing.age) } : DEFAULTS);
+  const [f, setF] = useState<Form>({ ...existing, budget: String(existing.budget), age: String(existing.age) });
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [confirmReset, setConfirmReset] = useState(false);
-  useTitle(existing ? "Your profile" : "Create your profile");
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const set = <K extends keyof Form>(k: K, v: Form[K]) => { setF((x) => ({ ...x, [k]: v })); setErrors((e) => { const { [k as string]: _, ...rest } = e; return rest; }); };
 
   const submit = (e: FormEvent) => {
@@ -25,27 +37,29 @@ export function ProfilePage() {
     if (!r.success) {
       const errs = fieldErrors(r.error);
       setErrors(errs);
-      const first = Object.keys(errs)[0];
-      document.getElementById(`p-${first}`)?.focus();
+      document.getElementById(`p-${Object.keys(errs)[0]}`)?.focus();
       toast("Some details need fixing.", "error");
       return;
     }
-    try {
-      saveProfile(r.data);
-      toast(existing ? "Profile updated. Fit scores are refreshed." : "Profile created. Every room now shows how it fits you.");
-      if (next && next.startsWith("/")) navigate(next);
-      else if (!existing) navigate(`/search?city=${encodeURIComponent(r.data.city)}&sort=fit`);
-    } catch (x) { toast((x as Error).message, "error"); }
+    try { saveProfile(r.data); toast("Profile updated. Fit scores are refreshed."); }
+    catch (x) { toast(errorMessage(x), "error"); }
   };
 
   return (
     <div className="wrap grid max-w-3xl gap-6 py-8">
-      <div className="grid gap-2">
-        <p className="eyebrow">{existing ? "Profile" : "Two minutes"}</p>
-        <h1 className="text-3xl font-extrabold">{existing ? `Hi, ${existing.name.split(" ")[0]}` : "Tell us how you live"}</h1>
-        <p className="text-muted">Listers see this when you message them, and every room gets a fit score from it. Be honest; it saves everyone a wasted visit.</p>
+      <div className="anim-rise grid gap-2">
+        <p className="eyebrow">Profile</p>
+        <h1 className="text-3xl font-extrabold">Hi, {existing.name.split(" ")[0]}</h1>
+        <p className="text-muted">Signed in as <b className="text-ink">{email}</b>. Listers see your profile when you message them, and every room gets a fit score from it.</p>
       </div>
-      {!isPersistent() && <p role="alert" className="rounded-xl bg-warn-soft p-3 text-sm font-semibold text-warn">Your browser is blocking storage (private mode?). Your profile will be lost when you close this tab.</p>}
+      {!isPersistent() && <p role="alert" className="rounded-xl bg-warn-soft p-3 text-sm font-semibold text-warn">Your browser is blocking storage (private mode?). Your account will be lost when you close this tab.</p>}
+
+      <section className="card grid gap-3 p-5 sm:p-7" aria-labelledby="role-h">
+        <h2 id="role-h" className="text-lg font-bold">How you use Kamra</h2>
+        <ChoiceGroup name="p-role" label="I'm here because I'm…" value={role}
+          onChange={(v) => { try { setRole(v); toast(`Switched to “${ROLES[v]}”. Your menu has been updated.`); } catch (x) { toast(errorMessage(x), "error"); } }}
+          options={Object.entries(ROLES) as Array<[Role, string]>} />
+      </section>
 
       <form onSubmit={submit} noValidate className="grid gap-6">
         <section className="card grid gap-5 p-5 sm:p-7" aria-labelledby="about-you">
@@ -54,7 +68,7 @@ export function ProfilePage() {
             <Field id="p-name" label="Name" error={errors.name}>{(a) => <input {...a} autoComplete="name" maxLength={40} className="input" value={f.name} onChange={(e) => set("name", e.target.value)} />}</Field>
             <Field id="p-age" label="Age" error={errors.age}>{(a) => <input {...a} inputMode="numeric" className="input" value={f.age} onChange={(e) => set("age", e.target.value.replace(/\D/g, "").slice(0, 2))} />}</Field>
             <Field id="p-work" label="What you do" hint="e.g. Software engineer at a fintech" error={errors.work}>{(a) => <input {...a} maxLength={60} className="input" value={f.work} onChange={(e) => set("work", e.target.value)} />}</Field>
-            <Field id="p-city" label="City you're looking in">{(a) => <select {...a} className="input" value={f.city} onChange={(e) => set("city", e.target.value as City)}>{CITIES.map((c) => <option key={c}>{c}</option>)}</select>}</Field>
+            <Field id="p-city" label="City">{(a) => <select {...a} className="input" value={f.city} onChange={(e) => set("city", e.target.value as City)}>{CITIES.map((c) => <option key={c}>{c}</option>)}</select>}</Field>
           </div>
           <ChoiceGroup name="p-gender" label="Gender" value={f.gender} onChange={(v) => set("gender", v)} options={[["woman", "Woman"], ["man", "Man"], ["other", "Non-binary / other"]]} />
           <p className="-mt-3 text-sm text-muted">Used only to hide girls-only or boys-only rooms you can't live in.</p>
@@ -63,7 +77,7 @@ export function ProfilePage() {
         <section className="card grid gap-5 p-5 sm:p-7" aria-labelledby="lifestyle">
           <h2 id="lifestyle" className="text-lg font-bold">Lifestyle</h2>
           <ChoiceGroup name="p-diet" label="What you eat" value={f.diet} onChange={(v) => set("diet", v)} options={Object.entries(DIETS) as Array<[Profile["diet"], string]>} />
-          <ChoiceGroup name="p-guests" label="How often you'd have guests over" value={f.guests} onChange={(v) => set("guests", v)} options={Object.entries(GUESTS) as Array<[Profile["guests"], string]>} />
+          <ChoiceGroup name="p-guests" label="Guests over" value={f.guests} onChange={(v) => set("guests", v)} options={Object.entries(GUESTS) as Array<[Profile["guests"], string]>} />
           <ChoiceGroup name="p-shift" label="Work hours" value={f.shift} onChange={(v) => set("shift", v)} options={Object.entries(SHIFTS) as Array<[Profile["shift"], string]>} />
           <div className="grid gap-3 sm:grid-cols-2">
             <Toggle id="p-smokes" label="I smoke" checked={f.smokes} onChange={(v) => set("smokes", v)} />
@@ -85,16 +99,19 @@ export function ProfilePage() {
         </section>
 
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <button type="submit" className="btn-primary px-6">{existing ? "Save profile" : "Create profile"}</button>
-          {existing && <button type="button" className="btn-ghost text-warn" onClick={() => setConfirmReset(true)}><LuRotateCcw aria-hidden />Delete my data</button>}
+          <button type="submit" className="btn-primary px-6">Save profile</button>
+          <div className="flex flex-wrap gap-2">
+            <button type="button" className="btn-ghost" onClick={() => { logOut(); toast("You're logged out."); navigate("/"); }}><LuLogOut aria-hidden />Log out</button>
+            <button type="button" className="btn-ghost text-warn" onClick={() => setConfirmDelete(true)}><LuTrash2 aria-hidden />Delete account</button>
+          </div>
         </div>
       </form>
 
-      <Dialog open={confirmReset} onClose={() => setConfirmReset(false)} title="Delete everything?">
-        <p>This removes your profile, listings, messages, saved rooms and visits from this browser. It can't be undone.</p>
+      <Dialog open={confirmDelete} onClose={() => setConfirmDelete(false)} title="Delete your account?">
+        <p>This permanently removes your account, profile, listings, messages, saved rooms and visits from this browser.</p>
         <div className="flex justify-end gap-2">
-          <button type="button" className="btn-ghost" onClick={() => setConfirmReset(false)}>Keep my data</button>
-          <button type="button" className="btn-danger" onClick={() => { resetAll(); setConfirmReset(false); setF(DEFAULTS); toast("All your data was deleted."); navigate("/"); }}>Delete everything</button>
+          <button type="button" className="btn-ghost" onClick={() => setConfirmDelete(false)}>Keep my account</button>
+          <button type="button" className="btn-danger" onClick={() => { try { deleteAccount(); setConfirmDelete(false); toast("Your account was deleted."); navigate("/"); } catch (x) { toast(errorMessage(x), "error"); } }}>Delete account</button>
         </div>
       </Dialog>
     </div>

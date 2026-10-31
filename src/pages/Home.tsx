@@ -105,7 +105,7 @@ export function Home() {
         </div>
         <ol className="grid gap-4 md:grid-cols-3">
           {[
-            ["Tell us how you live", "Diet, smoking, guests, work hours and budget. Two minutes, and every room gets a fit score.", LuUsers, "/profile"],
+            ["Tell us how you live", "Diet, smoking, guests, work hours and budget. Two minutes, and every room gets a fit score.", LuUsers, "/signup"],
             ["Search near your office", "Pick a tech park or metro station and a radius. Rooms are sorted by real distance.", LuBuilding2, "/search"],
             ["Message and visit", "Chat inside Kamra, book a visit slot, and only share your number once you've met.", LuMessageCircle, "/messages"],
           ].map(([t, b, Icon, to], i) => {

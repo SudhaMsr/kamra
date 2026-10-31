@@ -68,26 +68,37 @@ def test_profile_adds_fit_scores_and_hides_ineligible_rooms(page: Page):
     assert page.get_by_text(re.compile(r"· (Match|Clash)")).count() == 6
 
 
-def test_profile_validation_shows_inline_errors(page: Page):
+def test_profile_page_validation_shows_inline_errors(page: Page):
+    create_profile(page)
     go(page, "/profile")
+    page.get_by_label("Name").fill("A")
     page.get_by_label("Age").fill("15")
-    page.get_by_role("button", name="Create profile").click()
+    page.get_by_role("button", name="Save profile").click()
     expect(page.get_by_text("Name needs at least 2 characters")).to_be_visible()
     expect(page.get_by_text("You must be 18 or older")).to_be_visible()
     expect(page.get_by_label("Name")).to_have_attribute("aria-invalid", "true")
     expect(page.get_by_label("Name")).to_be_focused()
 
 
-def test_contact_requires_profile_then_returns_to_the_room(page: Page):
+def test_contact_requires_account_then_returns_to_the_room(page: Page):
     go(page, "/rooms/d001")
     page.get_by_role("button", name=re.compile("^Message")).click()
-    expect(page).to_have_url(re.compile(r"#/profile\?next="))
-    page.get_by_label("Name").fill("Rohit Shah")
+    expect(page).to_have_url(re.compile(r"#/signup\?next="))
+    # Sign up from here; the welcome screen's main action returns to the room.
+    page.get_by_role("radio", name=re.compile("Looking for a room")).click()
+    page.get_by_role("button", name="Continue").click()
+    page.get_by_label("Your name").fill("Rohit Shah")
+    page.get_by_label("Email").fill("rohit@example.com")
+    page.get_by_label("Password", exact=True).fill("Rohit12345")
+    page.get_by_role("button", name="Continue").click()
     page.get_by_label("Age").fill("27")
     page.get_by_label("What you do").fill("Analyst")
     page.get_by_role("radiogroup", name="Gender").get_by_role("radio", name="Man", exact=True).click()
-    page.get_by_role("button", name="Create profile").click()
+    for _ in range(4):
+        page.get_by_role("button", name=re.compile("Continue|Create account")).click()
+    page.get_by_role("link", name="See rooms that fit you").click()
     expect(page).to_have_url(re.compile(r"#/rooms/d001$"))
+    expect(page.get_by_role("button", name=re.compile("^Message Arjun|^Message"))).to_be_visible()
 
 
 def test_messaging_hides_phone_numbers_and_gets_a_reply(page: Page):
@@ -219,15 +230,15 @@ def test_list_a_room_end_to_end_with_photo_edit_and_pause(page: Page):
     expect(page.get_by_role("link", name="Sunny room near Hinjewadi Phase 1")).to_have_count(0)
 
 
-def test_listing_persists_across_reload_and_delete_everything(page: Page):
+def test_session_persists_across_reload_and_account_can_be_deleted(page: Page):
     create_profile(page)
     page.reload()
     go(page, "/profile")
     expect(page.get_by_role("heading", level=1)).to_have_text("Hi, Ananya")
-    page.get_by_role("button", name="Delete my data").click()
-    page.get_by_role("dialog").get_by_role("button", name="Delete everything").click()
+    page.get_by_role("button", name="Delete account").click()
+    page.get_by_role("dialog").get_by_role("button", name="Delete account").click()
     go(page, "/profile")
-    expect(page.get_by_role("heading", level=1)).to_have_text("Tell us how you live")
+    expect(page.get_by_role("heading", level=1)).to_have_text("Sign up to get fit scores")
 
 
 def test_flatmates_directory_and_message(page: Page):
@@ -257,7 +268,7 @@ def test_unknown_routes_and_missing_rooms(page: Page):
     go(page, "/rooms/nope")
     expect(page.get_by_role("heading", level=1)).to_have_text("We couldn't find that room")
     go(page, "/post?edit=d001")
-    expect(page.get_by_role("heading", level=1)).to_have_text("Create your profile first")
+    expect(page.get_by_role("heading", level=1)).to_have_text("Sign up to list a room")
 
 
 def test_mobile_navigation_and_filter_sheet(mobile: Page):

@@ -11,6 +11,7 @@ import { MyRooms, Saved, Visits } from "./pages/Lists";
 import { Messages } from "./pages/Messages";
 import { PostRoom } from "./pages/PostRoom";
 import { ProfilePage } from "./pages/Profile";
+import { LogInPage, SignUpPage } from "./pages/Auth";
 import { Search } from "./pages/Search";
 import { NotFoundPage, Safety } from "./pages/Static";
 
@@ -28,6 +29,8 @@ function Routes() {
   if (path === "/saved") return <Saved />;
   if (path === "/visits") return <Visits />;
   if (path === "/profile") return <ProfilePage />;
+  if (path === "/signup") return <SignUpPage />;
+  if (path === "/login") return <LogInPage />;
   if (path === "/safety") return <Safety />;
   return <NotFoundPage />;
 }
@@ -55,7 +58,7 @@ function App() {
   return (
     <ToastProvider>
       <Layout>
-        <Boundary key={path}><Routes /></Boundary>
+        <Boundary key={path}><div className="anim-rise"><Routes /></div></Boundary>
       </Layout>
     </ToastProvider>
   );

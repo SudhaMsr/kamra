@@ -4,7 +4,7 @@ import {
   LuPencil, LuPhoneOff, LuUsers, LuUtensils, LuWine,
 } from "react-icons/lu";
 import { Avatar, Dialog, Field, FitBadge, FitBreakdown, RoomArt, TrustTags, useToast } from "../components/ui";
-import { findListing, openThread, reportListing, requestVisit, sendMessage, toggleSaved, useStore } from "../data/store";
+import { findListing, isMine, openThread, reportListing, requestVisit, sendMessage, toggleSaved, useStore } from "../data/store";
 import { fitListing, genderEligible } from "../domain/fit";
 import { commuteMinutes, distanceM, formatCoord, formatDistance } from "../domain/geo";
 import { KIND_LABEL, LANDMARKS } from "../domain/landmarks";
@@ -32,10 +32,10 @@ export function ListingPage({ id }: { id: string }) {
 
   if (!listing) return <NotFound what="room" />;
   const l = listing;
-  const mine = l.ownerId === "me";
+  const mine = isMine(l);
   const fit = profile ? fitListing(l, profile) : null;
   const eligible = !profile || genderEligible(l.gender, profile.gender);
-  const needProfile = (next: typeof dlg) => { if (!profile) { toast("Create your profile first, so the lister knows who's asking.", "error"); navigate("/profile?next=" + encodeURIComponent(`/rooms/${l.id}`)); return; } setDlg(next); };
+  const needProfile = (next: typeof dlg) => { if (!profile) { toast("Sign up or log in first, so the lister knows who's asking.", "error"); navigate("/signup?next=" + encodeURIComponent(`/rooms/${l.id}`)); return; } setDlg(next); };
 
   const copyLink = async () => {
     const url = window.location.href;

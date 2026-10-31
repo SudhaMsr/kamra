@@ -43,6 +43,20 @@ Dependencies point one way: `pages → components → data → domain`. Domain c
 - **Photos** are resized to 1280 px and re-encoded as JPEG in the browser before storage.
 - **Accessibility.** Skip link, one `h1` per page, focus moves to the page on navigation, labelled controls with linked error messages, radio groups with arrow-key support, native `<dialog>` with a focus trap, keyboard-reachable map pins, WCAG AA contrast in both themes, reduced-motion support. All enforced by the e2e suite.
 
+## Accounts
+
+One account per person, with a role chosen at sign-up: looking for a room, have a room to fill, or both. The role
+decides the navigation and where people land after logging in, and can be changed from the profile page. Passwords
+are hashed with PBKDF2-SHA256 (210,000 iterations, random 16-byte salt) and compared in constant time; login is
+throttled for 30 seconds after five failures. Each account has its own data bucket; a guest bucket holds rooms saved
+before signing up and moves into the new account. Data from v1 (single profile, no login) is migrated on load.
+
+## Motion
+
+One easing curve and three durations (160 / 320 / 520 ms) in `src/styles.css`. Only opacity and transform animate.
+Entrances use CSS keyframes with fill-mode `both`; one-off feedback (form shake) uses the Web Animations API so
+elements aren't remounted and keep focus. Everything collapses to its end state under `prefers-reduced-motion`.
+
 ## Demo edition and the path to multi-user
 
 This edition stores user data in the browser (`src/data/store.ts`) and ships a deterministic demo dataset of rooms and flatmates across 7 cities. To run Kamra for real users:

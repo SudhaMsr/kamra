@@ -2,7 +2,7 @@
 import pytest
 from playwright.sync_api import Page, expect
 
-from conftest import create_profile, go
+from conftest import create_profile, go, settle
 
 ROUTES = ["/", "/search", "/rooms/d001", "/flatmates", "/post", "/messages", "/saved", "/profile", "/safety", "/visits", "/my-rooms"]
 
@@ -89,6 +89,7 @@ def test_all_text_meets_wcag_aa_contrast(page: Page, theme, route):
     create_profile(page)
     page.get_by_role("radio", name=f"{theme.capitalize()} theme").first.click()
     go(page, route)
+    settle(page)
     assert page.evaluate(CONTRAST) == []
 
 
@@ -117,6 +118,7 @@ def test_form_controls_and_filters_are_clearly_visible(page: Page, theme, route)
     create_profile(page)
     page.get_by_role("radio", name=f"{theme.capitalize()} theme").first.click()
     go(page, route)
+    settle(page)
     assert page.evaluate(CONTROL_EDGES) == []
 
 

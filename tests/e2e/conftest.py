@@ -63,17 +63,43 @@ def go(page: Page, route: str = ""):
     page.locator("#main h1").first.wait_for()
 
 
-def create_profile(page: Page, *, name="Ananya Rao", gender="Woman", diet="Pure veg", budget="16000", city="Bengaluru"):
-    go(page, "/profile")
-    page.get_by_label("Name").fill(name)
+def settle(page: Page):
+    """Waits until every finite CSS animation and transition has finished (infinite ones, like spinners, are ignored)."""
+    page.wait_for_function("""() => document.getAnimations().every(a => {
+        const t = a.effect && a.effect.getComputedTiming ? a.effect.getComputedTiming() : null;
+        return a.playState !== 'running' || (t && t.iterations === Infinity);
+    })""", timeout=5000)
+
+
+_seq = {"n": 0}
+
+
+def create_profile(page: Page, *, name="Ananya Rao", gender="Woman", diet="Pure veg", budget="16000", city="Bengaluru",
+                   role="Both", email=None, password="Kamra2026!", expect_url=r"#/(search|post|my-rooms)"):
+    """Signs up through the real multi-step flow and lands on the welcome screen's first action."""
+    _seq["n"] += 1
+    email = email or f"user{_seq['n']}-{id(page) % 100000}@example.com"
+    go(page, "/signup")
+    page.get_by_role("radio", name=re.compile(role)).first.click()
+    page.get_by_role("button", name="Continue").click()
+    page.get_by_label("Your name").fill(name)
+    page.get_by_label("Email").fill(email)
+    page.get_by_label("Password", exact=True).fill(password)
+    page.get_by_role("button", name="Continue").click()
     page.get_by_label("Age").fill("26")
     page.get_by_label("What you do").fill("Software engineer")
-    page.get_by_label("City you're looking in").select_option(city)
     page.get_by_role("radiogroup", name="Gender").get_by_role("radio", name=gender, exact=True).click()
+    page.get_by_label("City").select_option(city)
+    page.get_by_role("button", name="Continue").click()
     page.get_by_role("radiogroup", name="What you eat").get_by_role("radio", name=diet).click()
+    page.get_by_role("button", name="Continue").click()
+    page.get_by_role("button", name="Continue").click()
     page.get_by_label("Monthly rent budget (₹)").fill(budget)
-    page.get_by_role("button", name="Create profile").click()
-    page.wait_for_url(re.compile(r"#/search"))
+    page.get_by_role("button", name="Create account").click()
+    page.get_by_role("heading", name=re.compile("Welcome to Kamra")).wait_for(timeout=15000)
+    page.locator("#main a.btn-primary").first.click()
+    page.wait_for_url(re.compile(expect_url))
+    return email
 
 
 def pytest_runtest_logreport(report):

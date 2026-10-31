@@ -25,7 +25,7 @@ export function Flatmates() {
 
   const message = () => {
     if (!sel) return;
-    if (!profile) { navigate("/profile?next=" + encodeURIComponent("/flatmates")); return; }
+    if (!profile) { navigate("/signup?next=" + encodeURIComponent("/flatmates")); return; }
     try {
       const t = openThread({ seeker: sel });
       sendMessage(t.id, `Hi ${sel.name.split(" ")[0]}, I saw you're looking for a room in ${sel.city}. I have a place you might like. Want to chat?`);
@@ -90,7 +90,7 @@ export function Flatmates() {
               ))}
             </dl>
             {selFit && <><h3 className="font-bold">How you'd get along</h3><FitBreakdown fit={selFit} /></>}
-            <button type="button" className="btn-primary" onClick={message}><LuMessageCircle aria-hidden />{profile ? `Message ${sel.name.split(" ")[0]}` : "Create profile to message"}</button>
+            <button type="button" className="btn-primary" onClick={message}><LuMessageCircle aria-hidden />{profile ? `Message ${sel.name.split(" ")[0]}` : "Sign up to message"}</button>
           </div>
         )}
       </Dialog>

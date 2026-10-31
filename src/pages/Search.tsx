@@ -133,8 +133,8 @@ export function Search() {
 
           {!profile && (
             <p className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-marigold-soft px-4 py-3 text-sm">
-              <span><b>See how each flat fits you.</b> Add your lifestyle once and every room gets a fit score.</span>
-              <Link to="/profile" className="btn-primary py-2">Add lifestyle</Link>
+              <span><b>See how each flat fits you.</b> Sign up, tell us how you live, and every room gets a fit score.</span>
+              <Link to={`/signup?next=${encodeURIComponent("/search?" + toParams(q))}`} className="btn-primary py-2">Sign up free</Link>
             </p>
           )}
 
