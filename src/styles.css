@@ -1,0 +1,114 @@
+@import "tailwindcss";
+
+/* Theme is resolved in JS (system / light / dark) and written to <html data-theme>. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Kamra design tokens.
+   Ink indigo for structure and actions, marigold as the single warm accent (backgrounds and marks only, never body text),
+   neutrals biased slightly toward indigo. */
+:root {
+  --paper: #f5f5f9;
+  --surface: #ffffff;
+  --raised: #eceef6;
+  --ink: #141738;
+  --muted: #565b78;
+  --line: #dcdfeb;
+  --brand: #2a31a0;
+  --brand-hover: #222886;
+  --brand-ink: #ffffff;
+  --brand-soft: #e5e7fa;
+  --marigold: #e8930c;
+  --marigold-soft: #fdefd4;
+  --ok: #13703f;
+  --ok-soft: #dbf2e4;
+  --warn: #a8411b;
+  --warn-soft: #fbe5da;
+  --map-land: #eef0f6;
+  --map-ring: #c9cde0;
+  color-scheme: light;
+}
+[data-theme="dark"] {
+  --paper: #0d0f22;
+  --surface: #151833;
+  --raised: #1d2144;
+  --ink: #eceefb;
+  --muted: #a3a8c7;
+  --line: #2a2f5c;
+  --brand: #a4acff;
+  --brand-hover: #bcc2ff;
+  --brand-ink: #0d0f22;
+  --brand-soft: #252b62;
+  --marigold: #f4b347;
+  --marigold-soft: #3a2c12;
+  --ok: #63d69f;
+  --ok-soft: #153a29;
+  --warn: #f39c7c;
+  --warn-soft: #43231a;
+  --map-land: #191c3c;
+  --map-ring: #343a6e;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-soft: var(--brand-soft);
+  --color-marigold: var(--marigold);
+  --color-marigold-soft: var(--marigold-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-map-land: var(--map-land);
+  --color-map-ring: var(--map-ring);
+  --font-display: "Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Figtree", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body { @apply bg-paper text-ink font-sans antialiased; font-size: 1rem; line-height: 1.55; }
+  h1, h2, h3 { @apply font-display text-ink; text-wrap: balance; letter-spacing: -0.015em; }
+  :focus-visible { outline: 3px solid var(--marigold); outline-offset: 2px; border-radius: 6px; }
+  ::selection { background: var(--marigold-soft); color: var(--ink); }
+  input, select, textarea, button { font: inherit; color: inherit; }
+  [hidden] { display: none !important; }
+}
+
+/* Component classes. Declared with @utility so they compose with variants and can be @applied. */
+@utility btn { @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[0.95rem] font-semibold transition-colors select-none disabled:cursor-not-allowed disabled:opacity-55; }
+@utility btn-primary { @apply btn bg-brand text-brand-ink hover:bg-brand-hover; }
+@utility btn-secondary { @apply btn bg-brand-soft text-brand hover:bg-raised; }
+@utility btn-ghost { @apply btn text-ink hover:bg-raised; }
+@utility btn-danger { @apply btn bg-warn-soft text-warn hover:bg-raised; }
+@utility field { @apply grid gap-1.5; }
+@utility label { @apply text-sm font-semibold text-ink; }
+@utility hint { @apply text-[0.82rem] text-muted; }
+@utility error { @apply text-[0.82rem] font-semibold text-warn; }
+@utility input {
+  @apply w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-ink placeholder:text-muted focus:border-brand focus:outline-none focus:ring-3 focus:ring-brand/25;
+  &[aria-invalid="true"] { @apply border-warn; }
+}
+@utility card { @apply rounded-2xl border border-line bg-surface; }
+@utility chip {
+  @apply inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-sm font-semibold text-ink hover:border-brand;
+  &[aria-pressed="true"], &[aria-checked="true"] { @apply border-brand bg-brand text-brand-ink; }
+}
+@utility tag { @apply inline-flex items-center gap-1 rounded-md bg-raised px-2 py-0.5 text-[0.78rem] font-semibold text-muted; }
+@utility tag-ok { @apply bg-ok-soft text-ok; }
+@utility tag-warn { @apply bg-warn-soft text-warn; }
+@utility tag-brand { @apply bg-brand-soft text-brand; }
+@utility eyebrow { @apply text-[0.75rem] font-bold uppercase tracking-[0.12em] text-muted; }
+@utility wrap { @apply mx-auto w-full max-w-6xl px-4 sm:px-6; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}
