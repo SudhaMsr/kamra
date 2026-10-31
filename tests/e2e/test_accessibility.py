@@ -42,8 +42,13 @@ def test_page_structure_anonymous(page: Page, route):
 
 
 @pytest.mark.parametrize("route", ROUTES)
-def test_no_horizontal_scroll_on_phones(mobile: Page, route):
+@pytest.mark.parametrize("stress", [False, True], ids=["normal", "wide-text"])
+def test_no_horizontal_scroll_on_phones(mobile: Page, route, stress):
+    """Also checks with artificially wide text, since real web fonts can be wider than the fallback font."""
+    mobile.set_viewport_size({"width": 360, "height": 800})
     go(mobile, route)
+    if stress:
+        mobile.add_style_tag(content="*{letter-spacing:.08em!important}")
     assert mobile.evaluate("document.documentElement.scrollWidth <= innerWidth"), f"{route} scrolls sideways"
 
 

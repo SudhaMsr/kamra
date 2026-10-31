@@ -154,13 +154,13 @@ export function Home() {
 
       <section className="wrap grid gap-6 py-14" aria-labelledby="cities">
         <h2 id="cities" className="text-3xl font-bold">Browse by city</h2>
-        <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+        <ul className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {CITIES.map((c) => {
             const n = listings.filter((l) => l.city === c && l.status === "active").length;
             return (
               <li key={c}>
-                <Link to={`/search?${toParams({ city: c, radius: 25 })}`} className="card flex items-center justify-between gap-2 p-4 hover:border-brand">
-                  <span className="font-display text-lg font-bold">{c}</span>
+                <Link to={`/search?${toParams({ city: c, radius: 25 })}`} className="card flex min-w-0 flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 p-4 hover:border-brand">
+                  <span className="min-w-0 font-display text-lg font-bold">{c}</span>
                   <span className="whitespace-nowrap text-sm text-muted">{n} rooms</span>
                 </Link>
               </li>
