@@ -4,12 +4,13 @@ from pathlib import Path
 
 from playwright.sync_api import Page, expect
 
-from conftest import BASE, create_profile, go
+from conftest import BASE, create_profile, go, wait_idle
 
 FIXTURE_IMG = Path(__file__).parent / "fixtures" / "room.png"
 
 
 def results(page: Page):
+    wait_idle(page)
     return page.get_by_role("list", name="Search results").get_by_role("listitem")
 
 

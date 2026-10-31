@@ -61,6 +61,12 @@ def mobile(browser) -> Page:
 def go(page: Page, route: str = ""):
     page.goto(BASE + ("#" + route if route else ""))
     page.locator("#main h1").first.wait_for()
+    wait_idle(page)
+
+
+def wait_idle(page: Page):
+    """Waits for any search to finish loading (results replace their placeholders)."""
+    page.wait_for_function("!document.querySelector('[aria-busy=\"true\"]')", timeout=8000)
 
 
 def settle(page: Page):

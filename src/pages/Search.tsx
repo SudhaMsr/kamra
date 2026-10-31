@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { LuList, LuMap, LuRotateCcw, LuSearch, LuSlidersHorizontal } from "react-icons/lu";
 import { ListingCard } from "../components/ListingCard";
 import { ProximityMap } from "../components/ProximityMap";
@@ -8,6 +8,7 @@ import { KIND_LABEL, landmarkById, landmarksIn } from "../domain/landmarks";
 import { SearchQuery, origin, search, toParams } from "../domain/search";
 import { AMENITIES, CITIES, DIETS, GENDERS, GUESTS, ROOM_TYPES, type City } from "../domain/types";
 import { plural } from "../lib/format";
+import { useBriefLoading, useFlip } from "../lib/motion";
 import { Link, navigate, useLocation, useTitle } from "../lib/router";
 
 const RADII = [1, 2, 3, 5, 10, 15, 25];
@@ -26,6 +27,12 @@ export function Search() {
   const [view, setView] = useState<"list" | "map">("list");
   const toast = useToast();
   useTitle(`Rooms near ${lm.short}, ${q.city}`);
+  // A new place (city, landmark or radius) is a new search: show the radar and placeholders briefly.
+  // Filters and sorting refine the current results instantly, and cards slide to their new positions.
+  const searchKey = `${q.city}|${o.id}|${q.radius}`;
+  const searching = useBriefLoading(searchKey);
+  const listRef = useRef<HTMLUListElement>(null);
+  useFlip(listRef, !searching);
 
   const set = (patch: Partial<SearchQuery>) => navigate(`/search?${toParams({ ...q, ...patch })}`, { replace: true });
   const activeFilters = [q.max, q.diet, q.gender, q.guests, q.q].filter(Boolean).length + q.room.length + q.amen.length;
@@ -77,7 +84,7 @@ export function Search() {
     </div>
   );
 
-  const map = <ProximityMap origin={o} radiusKm={q.radius} results={results} activeId={active} onActivate={setActive} onOpen={(id) => navigate(`/rooms/${id}`)} />;
+  const map = <ProximityMap origin={o} radiusKm={q.radius} results={results} activeId={active} onActivate={setActive} onOpen={(id) => navigate(`/rooms/${id}`)} searching={searching} />;
 
   return (
     <div className="wrap grid max-w-[88rem] gap-6 py-6">
@@ -110,11 +117,11 @@ export function Search() {
           </div>
         </aside>
 
-        <section aria-labelledby="results-h" className="grid content-start gap-4 min-w-0">
+        <section aria-labelledby="results-h" aria-busy={searching} className="grid content-start gap-4 min-w-0">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h1 id="results-h" className="text-2xl font-bold sm:text-3xl">Rooms near {lm.short}</h1>
-              <p className="text-muted" aria-live="polite">{plural(results.length, "room")} within {q.radius} km{profile ? ", ranked for your lifestyle" : ""}</p>
+              <p className="text-muted" aria-live="polite">{searching ? `Searching within ${q.radius} km…` : `${plural(results.length, "room")} within ${q.radius} km${profile ? ", ranked for your lifestyle" : ""}`}</p>
             </div>
             <div className="flex items-center gap-2">
               <button type="button" onClick={() => setFiltersOpen(true)} className="btn-secondary lg:hidden" aria-haspopup="dialog">
@@ -150,7 +157,21 @@ export function Search() {
           <div className={view === "map" ? "xl:hidden" : "hidden"}>{map}</div>
 
           <div className={`${view === "map" ? "hidden xl:grid" : "grid"} gap-4`}>
-            {results.length === 0 ? (
+            {searching ? (
+              <ul aria-hidden className="grid gap-4" data-testid="placeholders">
+                {[0, 1, 2].map((i) => (
+                  <li key={i} className="card grid overflow-hidden sm:grid-cols-[13rem_1fr]">
+                    <div className="skeleton aspect-[16/9] sm:aspect-auto sm:h-full" />
+                    <div className="grid gap-3 p-4">
+                      <div className="skeleton h-5 w-3/4 rounded-md" />
+                      <div className="skeleton h-4 w-1/2 rounded-md" />
+                      <div className="skeleton h-4 w-2/3 rounded-md" />
+                      <div className="flex gap-2"><div className="skeleton h-6 w-20 rounded-full" /><div className="skeleton h-6 w-24 rounded-full" /></div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : results.length === 0 ? (
               <Empty icon={<LuSearch size={26} />} title="No rooms match yet"
                 body={`Try a wider radius than ${q.radius} km or clear some filters. New rooms in ${q.city} are added every day.`}
                 action={<div className="flex flex-wrap justify-center gap-2">
@@ -158,9 +179,9 @@ export function Search() {
                   {activeFilters > 0 && <button type="button" className="btn-secondary" onClick={reset}>Clear filters</button>}
                 </div>} />
             ) : (
-              <ul className="@container grid gap-4" aria-label="Search results">
-                {results.map((r) => (
-                  <li key={r.listing.id}>
+              <ul ref={listRef} key={searchKey} className="@container grid gap-4" aria-label="Search results">
+                {results.map((r, i) => (
+                  <li key={r.listing.id} data-flip-id={r.listing.id} className="anim-rise stagger" style={{ "--i": i } as CSSProperties}>
                     <ListingCard result={r} landmark={lm.short} saved={saved.includes(r.listing.id)} active={active === r.listing.id}
                       onActivate={(on) => setActive(on ? r.listing.id : null)}
                       onToggleSave={() => toast(toggleSaved(r.listing.id) ? "Saved. Find it under Saved rooms." : "Removed from saved.")} />

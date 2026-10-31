@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useCountUp } from "../lib/motion";
 import { LuBadgeCheck, LuCircleCheck, LuHouse, LuShieldCheck, LuTriangleAlert, LuX } from "react-icons/lu";
 import type { Fit } from "../domain/fit";
 import type { Listing } from "../domain/types";
@@ -137,12 +138,15 @@ export function Avatar({ name, size = 40 }: { name: string; size?: number }) {
 }
 
 export function FitBadge({ fit, compact }: { fit: Fit; compact?: boolean }) {
+  const shown = useCountUp(fit.pct);
   const tone = fit.pct >= 80 ? "bg-ok-soft text-ok" : fit.pct >= 50 ? "bg-marigold-soft text-ink dark:text-marigold" : "bg-warn-soft text-warn";
   return (
     <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.8rem] font-bold ${tone}`}>
-      <span aria-hidden className="relative h-2 w-8 overflow-hidden rounded-full bg-current/20"><span className="absolute inset-y-0 left-0 rounded-full bg-current" style={{ width: `${fit.pct}%` }} /></span>
-      {fit.pct}%{compact ? "" : " fit"}
-      <span className="sr-only"> lifestyle match</span>
+      <span aria-hidden className="relative h-2 w-8 overflow-hidden rounded-full bg-current/20">
+        <span className="absolute inset-y-0 left-0 w-full origin-left rounded-full bg-current" style={{ transform: `scaleX(${shown / 100})` }} />
+      </span>
+      <span aria-hidden className="tabular-nums">{shown}%{compact ? "" : " fit"}</span>
+      <span className="sr-only">{fit.pct}% lifestyle match</span>
     </span>
   );
 }
@@ -150,8 +154,8 @@ export function FitBadge({ fit, compact }: { fit: Fit; compact?: boolean }) {
 export function FitBreakdown({ fit }: { fit: Fit }) {
   return (
     <ul className="grid gap-2">
-      {fit.rows.map((r) => (
-        <li key={r.key} className="flex items-start gap-3 rounded-xl bg-raised px-3 py-2.5">
+      {fit.rows.map((r, i) => (
+        <li key={r.key} className="anim-rise stagger flex items-start gap-3 rounded-xl bg-raised px-3 py-2.5" style={{ "--i": i } as CSSProperties}>
           <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-xs font-black ${r.ok ? "bg-ok text-paper" : "bg-warn text-paper"}`} aria-hidden>{r.ok ? "✓" : "!"}</span>
           <span className="grid">
             <span className="text-sm font-bold">{r.label} <span className={r.ok ? "text-ok" : "text-warn"}>· {r.ok ? "Match" : "Clash"}</span></span>
