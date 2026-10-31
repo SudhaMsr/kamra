@@ -74,3 +74,12 @@ def create_profile(page: Page, *, name="Ananya Rao", gender="Woman", diet="Pure 
     page.get_by_label("Monthly rent budget (₹)").fill(budget)
     page.get_by_role("button", name="Create profile").click()
     page.wait_for_url(re.compile(r"#/search"))
+
+
+def pytest_runtest_logreport(report):
+    """On GitHub Actions, surface each failure as an annotation so it shows on the run page."""
+    if os.environ.get("GITHUB_ACTIONS") and report.failed:
+        msg = str(report.longrepr).strip().splitlines()
+        lines = [line.strip() for line in msg if line.strip().startswith("E ")][:6] or msg[-3:]
+        text = " | ".join(lines)
+        print(f"\n::error title={report.nodeid}::{text[:900].replace(chr(10), ' ')}")
