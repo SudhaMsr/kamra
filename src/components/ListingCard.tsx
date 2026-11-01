@@ -13,7 +13,7 @@ export function ListingCard({ result, landmark, saved, onToggleSave, active, onA
   return (
     <article
       onMouseEnter={() => onActivate?.(true)} onMouseLeave={() => onActivate?.(false)}
-      className={`card group relative grid overflow-hidden transition-shadow @xl:grid-cols-[13rem_1fr] ${active ? "ring-2 ring-marigold" : "hover:shadow-md"}`}
+      className={`card group relative grid overflow-hidden transition-[box-shadow,transform] duration-[var(--t-fast)] ease-[var(--ease)] @xl:grid-cols-[13rem_1fr] ${active ? "-translate-y-0.5 shadow-md ring-2 ring-marigold" : "hover:-translate-y-0.5 hover:shadow-md"}`}
     >
       <div className="relative aspect-[16/9] bg-raised @xl:aspect-auto @xl:h-full">
         {l.photos[0]
@@ -51,7 +51,7 @@ export function ListingCard({ result, landmark, saved, onToggleSave, active, onA
         aria-label={saved ? `Remove ${l.title} from saved` : `Save ${l.title}`}
         className={`absolute right-2 top-2 z-10 grid h-10 w-10 place-items-center rounded-full shadow @xl:left-[10.6rem] @xl:right-auto ${saved ? "bg-marigold text-[#141738]" : "bg-surface/95 text-ink ring-1 ring-line hover:bg-marigold-soft"}`}
       >
-        <LuBookmark aria-hidden className={saved ? "fill-current" : ""} />
+        <LuBookmark key={String(saved)} aria-hidden className={saved ? "anim-pop fill-current" : ""} />
       </button>
     </article>
   );

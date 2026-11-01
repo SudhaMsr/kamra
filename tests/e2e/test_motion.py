@@ -3,7 +3,7 @@ import re
 
 from playwright.sync_api import Page, expect
 
-from conftest import BASE, create_profile, go, wait_idle
+from conftest import BASE, create_profile, go, settle, wait_idle
 
 
 def test_new_search_shows_radar_and_placeholders_then_results(page: Page):
@@ -147,3 +147,75 @@ def test_feedback_works_with_reduced_motion(browser):
     page.get_by_role("dialog").get_by_role("button", name="Request visit").click()
     expect(page.get_by_role("dialog", name="Visit requested")).to_be_visible()
     ctx.close()
+
+
+# ---------- batch 4: polish ----------
+
+def test_security_policy_is_in_place(page: Page):
+    go(page)
+    csp = page.locator('meta[http-equiv="Content-Security-Policy"]').get_attribute("content")
+    assert "default-src 'self'" in csp and "object-src 'none'" in csp and "unsafe-eval" not in csp
+    # Any blocked script or style would surface as a console error and fail this test via the fixture.
+
+
+def test_toast_appears_above_an_open_dialog(page: Page):
+    create_profile(page)
+    go(page, "/rooms/d004")
+    page.get_by_role("button", name="Report this listing").click()
+    dlg = page.get_by_role("dialog", name="Report this listing")
+    dlg.get_by_label(re.compile("token or fee")).check()
+    dlg.get_by_role("button", name="Send report").click()
+    toast = page.get_by_role("status").filter(has_text="Thanks")
+    expect(toast).to_be_visible()
+    # The toast region is in the top layer: hit-testing at its centre finds the toast, not the dialog backdrop.
+    box = toast.locator("div").first.bounding_box()
+    top = page.evaluate("([x, y]) => document.elementFromPoint(x, y)?.closest('[role=status]') !== null", [box["x"] + box["width"] / 2, box["y"] + box["height"] / 2])
+    assert top
+
+
+def test_filters_open_as_a_bottom_sheet_on_phones(mobile: Page):
+    go(mobile, "/search")
+    wait_idle(mobile)
+    mobile.get_by_role("button", name=re.compile("^Filters")).click()
+    sheet = mobile.get_by_role("dialog", name="Filters")
+    expect(sheet).to_be_visible()
+    settle(mobile)
+    box = sheet.bounding_box()
+    vh = mobile.viewport_size["height"]
+    assert abs((box["y"] + box["height"]) - vh) <= 2, "sheet should sit on the bottom edge"
+    assert box["width"] >= mobile.viewport_size["width"] - 1
+
+
+def test_marking_a_room_as_let_celebrates(page: Page):
+    create_profile(page, city="Pune")
+    go(page, "/post")
+    page.get_by_label("Headline").fill("Quiet room near Baner road")
+    page.get_by_label("Rent per month (₹)").fill("11000")
+    page.get_by_label("Deposit (₹)").fill("22000")
+    page.get_by_label("Describe the room and the flat").fill("A calm room with a big window, wardrobe and desk, in a friendly flat.")
+    for _ in range(5):
+        page.get_by_role("button", name="Continue").click()
+    page.get_by_role("button", name="Publish room").click()
+    go(page, "/my-rooms")
+    page.get_by_role("button", name="Mark as let").click()
+    expect(page.locator(".burst-bit").first).to_be_attached()
+    expect(page.get_by_text("Let", exact=True)).to_be_visible()
+    expect(page.locator(".burst-bit")).to_have_count(0, timeout=3000)
+
+
+def test_scroll_revealed_sections_become_visible(page: Page):
+    go(page)
+    city = page.get_by_role("link", name=re.compile("^Noida"))
+    city.scroll_into_view_if_needed()
+    settle(page)
+    assert page.evaluate("() => [...document.querySelectorAll('.reveal-pending')].length") == 0 or \
+        float(city.evaluate("el => getComputedStyle(el.closest('li')).opacity")) == 1.0
+    expect(city).to_be_visible()
+
+
+def test_theme_switch_cross_fades_and_still_applies(page: Page):
+    go(page)
+    page.get_by_role("radio", name="Dark theme").first.click()
+    expect(page.locator("html")).to_have_attribute("data-theme", "dark")
+    page.get_by_role("radio", name="Light theme").first.click()
+    expect(page.locator("html")).to_have_attribute("data-theme", "light")

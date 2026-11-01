@@ -6,7 +6,7 @@ import { toParams } from "../domain/search";
 import { CITIES, type City } from "../domain/types";
 import { inr } from "../lib/format";
 import { Link, navigate, useTitle } from "../lib/router";
-import { RoomArt } from "../components/ui";
+import { RevealItem, RoomArt } from "../components/ui";
 
 export function Home() {
   useTitle("");
@@ -78,7 +78,7 @@ export function Home() {
           </div>
 
           <div aria-hidden className="relative hidden pt-8 md:block">
-            <div className="card rotate-[-2deg] overflow-hidden shadow-xl">
+            <div className="card anim-float overflow-hidden shadow-xl">
               <RoomArt seed="hero-room" className="h-56 w-full" />
               <div className="grid gap-2 p-5">
                 <div className="flex items-baseline justify-between"><span className="font-display text-lg font-bold">Bright room with balcony</span><span className="font-mono">{inr(16500)}</span></div>
@@ -86,14 +86,14 @@ export function Home() {
                 <div className="flex gap-1.5"><span className="tag tag-ok">92% fit</span><span className="tag">No restriction</span><span className="tag tag-ok"><LuBadgeCheck />ID verified</span></div>
               </div>
             </div>
-            <div className="card absolute -right-3 top-0 w-56 rotate-[3deg] p-4 shadow-xl ring-1 ring-line">
+            <div className="absolute -right-3 top-0 w-56 rotate-[3deg]"><div className="card anim-in-right p-4 shadow-xl ring-1 ring-line" style={{ animationDelay: "420ms" }}>
               <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted">Why 92%</p>
               <ul className="grid gap-1.5 text-sm">
                 <li className="flex justify-between"><span>Kitchen</span><span className="font-bold text-ok">Match</span></li>
                 <li className="flex justify-between"><span>Work hours</span><span className="font-bold text-ok">Match</span></li>
                 <li className="flex justify-between"><span>Guests</span><span className="font-bold text-warn">Clash</span></li>
               </ul>
-            </div>
+            </div></div>
           </div>
         </div>
       </section>
@@ -111,7 +111,7 @@ export function Home() {
           ].map(([t, b, Icon, to], i) => {
             const I = Icon as typeof LuUsers;
             return (
-              <li key={t as string} className="card grid content-start gap-3 p-6">
+              <RevealItem key={t as string} i={i} className="card grid content-start gap-3 p-6">
                 <span className="flex items-center gap-3">
                   <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand text-brand-ink"><I aria-hidden /></span>
                   <span className="font-mono text-sm text-muted">Step {i + 1}</span>
@@ -119,7 +119,7 @@ export function Home() {
                 <h3 className="text-lg font-bold">{t as string}</h3>
                 <p className="text-muted">{b as string}</p>
                 <Link to={to as string} className="inline-flex items-center gap-1 font-semibold text-brand hover:underline">Start<LuArrowRight aria-hidden /></Link>
-              </li>
+              </RevealItem>
             );
           })}
         </ol>
@@ -138,14 +138,14 @@ export function Home() {
               [LuUsers, "Girls-only, boys-only or open", "Gender rules are respected automatically, so you only see rooms you can live in."],
               [LuPhoneOff, "Your number stays private", "Phone numbers and emails typed into chat are hidden until you choose to share in person."],
               [LuShieldCheck, "Never pay a token blind", "Listers are ID-verified, and Kamra will never ask you to pay a token or gate pass before a visit."],
-            ].map(([Icon, t, b]) => {
+            ].map(([Icon, t, b], i) => {
               const I = Icon as typeof LuLeaf;
               return (
-                <li key={t as string} className="grid gap-2 rounded-2xl bg-raised p-5">
+                <RevealItem key={t as string} i={i} className="grid gap-2 rounded-2xl bg-raised p-5">
                   <I aria-hidden className="text-brand" size={22} />
                   <h3 className="text-base font-bold">{t as string}</h3>
                   <p className="text-sm text-muted">{b as string}</p>
-                </li>
+                </RevealItem>
               );
             })}
           </ul>
@@ -155,15 +155,15 @@ export function Home() {
       <section className="wrap grid gap-6 py-14" aria-labelledby="cities">
         <h2 id="cities" className="text-3xl font-bold">Browse by city</h2>
         <ul className="grid grid-cols-[repeat(2,minmax(0,1fr))] gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {CITIES.map((c) => {
+          {CITIES.map((c, i) => {
             const n = listings.filter((l) => l.city === c && l.status === "active").length;
             return (
-              <li key={c}>
-                <Link to={`/search?${toParams({ city: c, radius: 25 })}`} className="card flex min-w-0 flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 p-4 hover:border-brand">
+              <RevealItem key={c} i={i}>
+                <Link to={`/search?${toParams({ city: c, radius: 25 })}`} className="card flex min-w-0 flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5 p-4 transition-[border-color,transform,box-shadow] duration-[var(--t-fast)] hover:-translate-y-0.5 hover:border-brand hover:shadow-md">
                   <span className="min-w-0 font-display text-lg font-bold">{c}</span>
                   <span className="whitespace-nowrap text-sm text-muted">{n} rooms</span>
                 </Link>
-              </li>
+              </RevealItem>
             );
           })}
         </ul>

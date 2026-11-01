@@ -175,7 +175,7 @@ export function ListingPage({ id }: { id: string }) {
             )}
             <div className="flex gap-2">
               <button type="button" aria-pressed={saved} className="btn-ghost flex-1" onClick={() => toast(toggleSaved(l.id) ? "Saved." : "Removed from saved.")}>
-                <LuBookmark aria-hidden className={saved ? "fill-current text-marigold" : ""} />{saved ? "Saved" : "Save"}
+                <LuBookmark key={String(saved)} aria-hidden className={saved ? "anim-pop fill-current text-marigold" : ""} />{saved ? "Saved" : "Save"}
               </button>
               <button type="button" className="btn-ghost flex-1" onClick={copyLink}><LuCopy aria-hidden />Copy link</button>
             </div>

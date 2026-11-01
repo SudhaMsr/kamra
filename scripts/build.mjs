@@ -57,9 +57,28 @@ const jsName = `assets/app-${hash(jsCode)}.js`;
 await fs.writeFile(path.join(out, cssName), cssCode);
 await fs.writeFile(path.join(out, jsName), jsCode);
 
-const html = (await fs.readFile(path.join(root, "index.html"), "utf8"))
+// Content-Security-Policy as a <meta> tag (GitHub Pages can't send headers). The single inline script (theme
+// before first paint) is allowed by its hash; everything else must come from this site or Google Fonts.
+const template = await fs.readFile(path.join(root, "index.html"), "utf8");
+const inline = [...template.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+const scriptHashes = inline.map((code) => `'sha256-${createHash("sha256").update(code).digest("base64")}'`).join(" ");
+const csp = [
+  "default-src 'self'",
+  `script-src 'self' ${scriptHashes}`,
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
+  "img-src 'self' data: blob:",
+  "connect-src 'self'",
+  "manifest-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join("; ");
+const html = template
+  .replace("<!--CSP-->", `<meta http-equiv="Content-Security-Policy" content="${csp}">\n  <meta name="referrer" content="strict-origin-when-cross-origin">`)
   .replace("<!--CSS-->", `<link rel="stylesheet" href="./${cssName}">`)
   .replace("<!--JS-->", `<script type="module" src="./${jsName}"></script>`);
+if (!html.includes("Content-Security-Policy")) throw new Error("index.html is missing the <!--CSP--> placeholder");
 await fs.writeFile(path.join(out, "index.html"), html);
 await fs.writeFile(path.join(out, "404.html"), html);
 await fs.writeFile(path.join(out, ".nojekyll"), "");

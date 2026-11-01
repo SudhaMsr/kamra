@@ -1,6 +1,7 @@
 import { type ReactNode } from "react";
 import { LuBookmark, LuCalendar, LuHouse, LuLogIn, LuMessageCircle, LuMonitor, LuMoon, LuPlus, LuSearch, LuSun, LuUser, LuUsers } from "react-icons/lu";
-import { setTheme, unreadCount, useStore, type Role, type Theme } from "../data/store";
+import { unreadCount, useStore, type Role, type Theme } from "../data/store";
+import { chooseTheme } from "../lib/theme";
 import { Link, useLocation } from "../lib/router";
 import { Avatar } from "./ui";
 
@@ -43,7 +44,7 @@ function ThemeSwitch() {
     <div role="radiogroup" aria-label="Colour theme" className="flex rounded-xl border border-line bg-surface p-0.5">
       {opts.map(([v, label, Icon]) => (
         <button key={v} type="button" role="radio" aria-checked={theme === v} aria-label={`${label} theme`} title={`${label} theme`}
-          onClick={() => setTheme(v)}
+          onClick={() => chooseTheme(v)}
           className={`grid h-8 w-8 place-items-center rounded-lg transition-colors ${theme === v ? "bg-brand-soft text-brand" : "text-muted hover:text-ink"}`}>
           <Icon aria-hidden size={16} className={theme === v ? "anim-pop" : ""} />
         </button>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { LuBookmark, LuCalendar, LuEye, LuHouse, LuPause, LuPencil, LuPlay, LuPlus, LuTrash2 } from "react-icons/lu";
 import { ListingCard } from "../components/ListingCard";
-import { Dialog, Empty, RoomArt, useToast } from "../components/ui";
+import { Burst, Dialog, Empty, RoomArt, useToast } from "../components/ui";
 import { cancelVisit, deleteListing, findListing, setListingStatus, toggleSaved, useStore } from "../data/store";
 import { fitListing } from "../domain/fit";
 import { distanceM } from "../domain/geo";
@@ -45,7 +45,13 @@ export function MyRooms() {
   const threads = useStore((s) => s.threads);
   const toast = useToast();
   const [del, setDel] = useState<string | null>(null);
-  const act = (fn: () => void, msg: string) => { try { fn(); toast(msg); } catch (e) { toast(errorMessage(e), "error"); } };
+  const [cheer, setCheer] = useState<string | null>(null);
+  const act = (fn: () => void, msg: string) => { try { fn(); toast(msg); return true; } catch (e) { toast(errorMessage(e), "error"); return false; } };
+  const markLet = (id: string) => {
+    if (!act(() => setListingStatus(id, "let"), "Marked as let. Congratulations!")) return;
+    setCheer(id);
+    window.setTimeout(() => setCheer((c) => (c === id ? null : c)), 900);
+  };
   return (
     <div className="wrap grid max-w-4xl gap-6 py-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -57,7 +63,8 @@ export function MyRooms() {
       ) : (
         <ul className="grid gap-4">
           {mine.map((l) => (
-            <li key={l.id} className="card grid gap-4 p-4 sm:grid-cols-[9rem_1fr_auto] sm:items-center">
+            <li key={l.id} className="card relative grid gap-4 p-4 sm:grid-cols-[9rem_1fr_auto] sm:items-center">
+              {cheer === l.id && <Burst />}
               <div className="aspect-[4/3] overflow-hidden rounded-xl bg-raised">
                 {l.photos[0] ? <img src={l.photos[0]} alt="" className="h-full w-full object-cover" /> : <RoomArt seed={l.id} className="h-full w-full" />}
               </div>
@@ -75,7 +82,7 @@ export function MyRooms() {
                 {l.status === "active"
                   ? <button type="button" className="btn-ghost" onClick={() => act(() => setListingStatus(l.id, "paused"), "Paused. It's hidden from search.")}><LuPause aria-hidden />Pause</button>
                   : <button type="button" className="btn-ghost" onClick={() => act(() => setListingStatus(l.id, "active"), "Live again.")}><LuPlay aria-hidden />Make live</button>}
-                {l.status !== "let" && <button type="button" className="btn-ghost" onClick={() => act(() => setListingStatus(l.id, "let"), "Marked as let. Congratulations!")}>Mark as let</button>}
+                {l.status !== "let" && <button type="button" className="btn-ghost" onClick={() => markLet(l.id)}>Mark as let</button>}
                 <button type="button" className="btn-ghost text-warn" onClick={() => setDel(l.id)}><LuTrash2 aria-hidden />Delete</button>
               </div>
             </li>

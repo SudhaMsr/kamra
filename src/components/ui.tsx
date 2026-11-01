@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { useCountUp } from "../lib/motion";
+import { useCountUp, useReveal } from "../lib/motion";
 import { LuBadgeCheck, LuCircleCheck, LuHouse, LuShieldCheck, LuTriangleAlert, LuX } from "react-icons/lu";
 import type { Fit } from "../domain/fit";
 import type { Listing } from "../domain/types";
@@ -13,8 +13,18 @@ export const useToast = () => useContext(ToastCtx);
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<Toast[]>([]);
   const seq = useRef(0);
+  const regionRef = useRef<HTMLDivElement>(null);
+  // The region is a manual popover so it lives in the browser's top layer: toasts show above open dialogs.
+  // Re-showing it moves it to the top of that layer, above any dialog opened since.
+  const raise = () => {
+    const el = regionRef.current as (HTMLDivElement & { showPopover?: () => void; hidePopover?: () => void }) | null;
+    if (!el?.showPopover) return;
+    try { if (el.matches(":popover-open")) el.hidePopover?.(); el.showPopover(); } catch { /* unsupported: stays in normal flow */ }
+  };
+  useEffect(raise, []);
   const push = useCallback((text: string, tone: Toast["tone"] = "ok") => {
     const id = ++seq.current;
+    raise();
     setItems((x) => [...x.slice(-2), { id, text, tone }]);
     // Fade out first, then remove, so toasts leave as smoothly as they arrive.
     window.setTimeout(() => {
@@ -25,7 +35,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastCtx.Provider value={push}>
       {children}
-      <div aria-live="polite" role="status" className="pointer-events-none fixed inset-x-0 bottom-20 z-50 flex flex-col items-center gap-2 px-4 md:bottom-6">
+      <div ref={regionRef} {...({ popover: "manual" } as Record<string, string>)} aria-live="polite" role="status"
+        className="pointer-events-none fixed inset-x-0 bottom-20 top-auto z-50 m-0 flex h-auto w-auto flex-col items-center gap-2 overflow-visible border-0 bg-transparent p-0 px-4 text-inherit md:bottom-6">
         {items.map((t) => (
           <div key={t.id} className={`pointer-events-auto flex max-w-md items-start gap-2 rounded-xl px-4 py-3 text-sm font-semibold shadow-lg ${t.leaving ? "anim-out" : "anim-rise"} ${t.tone === "error" ? "bg-warn text-white dark:text-paper" : "bg-ink text-paper"}`}>
             {t.tone === "error" ? <LuTriangleAlert aria-hidden className="mt-0.5 shrink-0" /> : <LuCircleCheck aria-hidden className="mt-0.5 shrink-0" />}
@@ -38,7 +49,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 }
 
 /* ---------- dialog (native <dialog>: focus trap, Esc to close) ---------- */
-export function Dialog({ open, onClose, title, children, wide }: { open: boolean; onClose: () => void; title: string; children: ReactNode; wide?: boolean }) {
+/** Modal dialog. `sheet` makes it a bottom sheet on phones (used for filters). */
+export function Dialog({ open, onClose, title, children, wide, sheet }: { open: boolean; onClose: () => void; title: string; children: ReactNode; wide?: boolean; sheet?: boolean }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   useEffect(() => {
@@ -59,7 +71,7 @@ export function Dialog({ open, onClose, title, children, wide }: { open: boolean
         if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
         else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
       }}
-      className={`m-auto w-[calc(100%-2rem)] ${wide ? "max-w-2xl" : "max-w-lg"} rounded-2xl border border-line bg-surface p-0 text-ink shadow-2xl backdrop:bg-ink/50 backdrop:backdrop-blur-[2px]`}
+      className={`m-auto w-[calc(100%-2rem)] ${wide ? "max-w-2xl" : "max-w-lg"} rounded-2xl border border-line bg-surface p-0 text-ink shadow-2xl backdrop:bg-ink/50 backdrop:backdrop-blur-[2px] ${sheet ? "max-sm:mb-0 max-sm:w-full max-sm:max-w-none max-sm:rounded-b-none max-sm:open:anim-sheet sm:open:anim-scale-in" : "open:anim-scale-in"}`}
     >
       {open && (
         <div className="grid gap-4 p-5 sm:p-6">
@@ -207,5 +219,28 @@ export function RoomArt({ seed, className = "", label }: { seed: string; classNa
       <rect x="22" y="118" width="40" height="42" rx="4" fill={b} opacity=".85" />
       <circle cx="42" cy="108" r="12" fill={a} opacity=".55" />
     </svg>
+  );
+}
+
+/** A list item that rises into view when it's scrolled to. `i` staggers siblings. */
+export function RevealItem({ i = 0, className = "", children }: { i?: number; className?: string; children: ReactNode }) {
+  const ref = useReveal<HTMLLIElement>();
+  return <li ref={ref} className={`stagger ${className}`} style={{ "--i": i } as CSSProperties}>{children}</li>;
+}
+
+/** A short confetti burst, used to celebrate a room being let. Purely decorative. */
+export function Burst() {
+  const bits = Array.from({ length: 16 }, (_, k) => {
+    const angle = (k / 16) * Math.PI * 2 + (k % 2 ? 0.2 : -0.1);
+    const dist = 46 + (k % 4) * 14;
+    return { dx: `${Math.cos(angle) * dist}px`, dy: `${Math.sin(angle) * dist - 10}px`, rot: `${(k % 2 ? 1 : -1) * (120 + k * 20)}deg`, color: ["var(--marigold)", "var(--brand)", "var(--ok)"][k % 3] };
+  });
+  return (
+    <span aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 z-10">
+      {bits.map((b, k) => (
+        <span key={k} className="burst-bit absolute h-2 w-1.5 rounded-sm"
+          style={{ background: b.color, "--dx": b.dx, "--dy": b.dy, "--rot": b.rot } as CSSProperties} />
+      ))}
+    </span>
   );
 }

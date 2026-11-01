@@ -66,7 +66,8 @@ def go(page: Page, route: str = ""):
 
 def wait_idle(page: Page):
     """Waits for any search to finish loading (results replace their placeholders)."""
-    page.wait_for_function("!document.querySelector('[aria-busy=\"true\"]')", timeout=8000)
+    # Function form (not an expression string): the site's CSP forbids eval, which expression strings rely on.
+    page.wait_for_function("() => !document.querySelector('[aria-busy=\"true\"]')", timeout=8000)
 
 
 def settle(page: Page):

@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { flushSync } from "react-dom";
 
 /** Small motion helpers. Everything here is a no-op when the person prefers reduced motion. */
 
@@ -83,4 +84,34 @@ export function useCountUp(value: number, ms = 600): number {
     return () => cancelAnimationFrame(raf);
   }, [value, ms]);
   return shown;
+}
+
+/**
+ * Reveals an element with a short rise when it scrolls into view. Elements already on screen when the page loads
+ * are left alone, and nothing is hidden if motion is reduced or IntersectionObserver isn't available.
+ */
+export function useReveal<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || prefersReducedMotion() || typeof IntersectionObserver === "undefined") return;
+    if (el.getBoundingClientRect().top < window.innerHeight) return;
+    el.classList.add("reveal-pending");
+    const io = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      el.classList.remove("reveal-pending");
+      el.classList.add("anim-rise");
+      io.disconnect();
+    }, { rootMargin: "0px 0px -8% 0px" });
+    io.observe(el);
+    return () => { io.disconnect(); el.classList.remove("reveal-pending"); };
+  }, []);
+  return ref;
+}
+
+/** Runs a DOM-changing update as a View Transition (a short cross-fade) when the browser supports it. */
+export function withViewTransition(update: () => void) {
+  const doc = document as Document & { startViewTransition?: (cb: () => void) => unknown };
+  if (!doc.startViewTransition || prefersReducedMotion()) { update(); return; }
+  doc.startViewTransition(() => flushSync(update));
 }

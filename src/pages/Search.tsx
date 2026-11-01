@@ -197,7 +197,7 @@ export function Search() {
         </aside>
       </div>
 
-      <Dialog open={filtersOpen} onClose={() => setFiltersOpen(false)} title="Filters">
+      <Dialog open={filtersOpen} onClose={() => setFiltersOpen(false)} title="Filters" sheet>
         <div className="max-h-[65vh] overflow-y-auto pr-1">{renderFilters("sheet")}</div>
         <button type="button" className="btn-primary" onClick={() => setFiltersOpen(false)}>Show {plural(results.length, "room")}</button>
       </Dialog>
