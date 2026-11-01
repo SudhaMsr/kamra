@@ -57,6 +57,25 @@ One easing curve and three durations (160 / 320 / 520 ms) in `src/styles.css`. O
 Entrances use CSS keyframes with fill-mode `both`; one-off feedback (form shake) uses the Web Animations API so
 elements aren't remounted and keep focus. Everything collapses to its end state under `prefers-reduced-motion`.
 
+## 3D and motion graphics
+
+- **Hero dollhouse** (`src/components/Dollhouse.tsx`): a cut-away flat built from CSS 3D transforms, no WebGL or
+  library. Boxes draw only their camera-facing faces; labels and people are billboards that counter-rotate to face
+  the camera. Opacity/transform entrance animations live on wrappers, never on the 3D root or a billboard, because
+  either would flatten the scene. Pointer tilt writes CSS variables once per frame; a CSS scroll-driven animation
+  turns the scene while scrolling where supported. A visible pause control meets WCAG 2.2.2; the scene also freezes
+  off-screen, and reduced-motion, data-saver and low-memory devices get the final still frame.
+- **How it works scenes** (`src/components/Scenes.tsx`): looping SVG animations that only run while on screen.
+- **Cards**: room cards tilt towards the pointer (fine pointers only); flatmate cards flip in 3D with the hidden
+  face made `inert`.
+- **Budgets**: the build fails if gzipped JS exceeds 150 kB or CSS 16 kB; an end-to-end test fails if the hero blocks
+  the main thread for more than 200 ms over three seconds at a 4× CPU slowdown.
+
+## Security
+
+A Content-Security-Policy meta tag (computed at build time, with the inline theme script allowed by hash) limits
+scripts to this origin, styles to this origin and Google Fonts, and forbids `eval`, plugins and foreign form targets.
+
 ## Demo edition and the path to multi-user
 
 This edition stores user data in the browser (`src/data/store.ts`) and ships a deterministic demo dataset of rooms and flatmates across 7 cities. To run Kamra for real users:

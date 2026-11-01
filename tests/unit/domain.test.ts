@@ -153,3 +153,10 @@ test("listing validation rejects bad input with readable messages", () => {
   assert.match(bad({ photos: ["javascript:alert(1)"] }), /Invalid/);
   assert.match(bad({ household: [{ name: "Kid", age: 15, work: "School", shift: "day" }] }), /18 or older/);
 });
+
+test("people fit details read naturally", () => {
+  const s = { ...DEMO_SEEKERS[0], diet: "pure-veg" as const, smokes: false };
+  const f = fitPeople({ ...profile, diet: "pure-veg", smokes: true }, s);
+  assert.equal(f.rows.find((r) => r.key === "diet")!.detail, "You both: Pure veg");
+  assert.equal(f.rows.find((r) => r.key === "smoking")!.detail, "You: Smoke · Them: Don't smoke");
+});

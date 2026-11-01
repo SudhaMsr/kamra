@@ -27,6 +27,9 @@
   --map-ring: #c9cde0;
   --field: #ffffff;
   --field-line: #767ca3;
+  /* 3D scene palette (walls, floors, furniture) */
+  --dh-wall: #e4e6f4; --dh-wall-side: #cfd3ea; --dh-floor-a: #f3ead8; --dh-floor-b: #e6edf7; --dh-floor-c: #ecf3ea;
+  --dh-wood: #c99a5b; --dh-wood-side: #a87a40; --dh-shadow: rgba(20, 23, 56, 0.16);
   color-scheme: light;
 }
 [data-theme="dark"] {
@@ -51,6 +54,8 @@
   --map-ring: #4a5290;
   --field: #1c2148;
   --field-line: #6670b8;
+  --dh-wall: #262c5c; --dh-wall-side: #1d2249; --dh-floor-a: #3a2f22; --dh-floor-b: #1f2a46; --dh-floor-c: #1f3a33;
+  --dh-wood: #8a6436; --dh-wood-side: #6b4c27; --dh-shadow: rgba(0, 0, 0, 0.4);
   color-scheme: dark;
 }
 
@@ -141,6 +146,18 @@
 @keyframes k-pulse { from { opacity: 0.7; transform: scale(0.08); } to { opacity: 0; transform: scale(1); } }
 @keyframes k-sheet-up { from { transform: translateY(100%); } }
 @keyframes k-burst { 0% { opacity: 1; transform: translate(0, 0) rotate(0) scale(1); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.6); } }
+@property --scroll-rz { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
+@keyframes k-scroll-turn { from { --scroll-rz: 7deg; } to { --scroll-rz: -7deg; } }
+@keyframes k-glow { 0% { opacity: 0; } 30% { opacity: 1; } 65% { opacity: 0.7; } 100% { opacity: 1; } }
+@keyframes k-breathe { 0%, 100% { opacity: 1; } 50% { opacity: 0.72; } }
+@keyframes k-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -5px; } }
+@keyframes k-chip-up { from { opacity: 0; translate: 0 18px; } to { opacity: 1; translate: 0 0; } }
+@keyframes k-ring { from { transform: scale(0.2); opacity: 0.9; } to { transform: scale(1); opacity: 0; } }
+@keyframes k-pin-drop { 0% { transform: translateY(-46px); opacity: 0; } 18% { opacity: 1; } 30% { transform: translateY(0); } 36% { transform: translateY(-6px); } 42%, 82% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(0); opacity: 0; } }
+@keyframes k-snap { 0%, 8% { transform: translateX(-70px); opacity: 0; } 22%, 85% { transform: translateX(0); opacity: 1; } 100% { transform: translateX(0); opacity: 0; } }
+@keyframes k-bubble { 0%, 5% { opacity: 0; transform: scale(0.6); } 15%, 40% { opacity: 1; transform: scale(1); } 50%, 100% { opacity: 0; transform: scale(0.9); } }
+@keyframes k-door { 0%, 45% { transform: scaleX(1); } 62%, 88% { transform: scaleX(0.25); } 100% { transform: scaleX(1); } }
+@keyframes k-key { 0%, 35% { opacity: 0; transform: rotate(0deg); } 42% { opacity: 1; transform: rotate(0deg); } 52%, 88% { opacity: 1; transform: rotate(90deg); } 100% { opacity: 0; transform: rotate(90deg); } }
 @keyframes k-float { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-8px) rotate(-2deg); } }
 
 @utility anim-rise { animation: k-rise var(--t-med) var(--ease) both; }
@@ -161,6 +178,40 @@
 @utility burst-bit { animation: k-burst 820ms cubic-bezier(0.15, 0.7, 0.3, 1) both; }
 /* Content further down the page waits here until scrolled into view (set by useReveal, only when JS runs). */
 @utility reveal-pending { opacity: 0; transform: translateY(18px); }
+
+/* ---------- 3D dollhouse scene (CSS 3D transforms) ----------
+   The stage is a floor plane tilted into an isometric-style view. Faces and billboards read the same angle
+   variables, so pointer tilt and scroll turn move everything together. */
+.dh-root { --rx: 56deg; --rz: -38deg; --tilt-x: 0deg; --tilt-z: 0deg; }
+.dh-view { position: absolute; inset: 0; perspective: 1400px; }
+@supports (animation-timeline: view()) {
+  .dh-root { animation: k-scroll-turn linear both; animation-timeline: view(); animation-range: cover 10% cover 90%; }
+}
+.dh-stage {
+  position: absolute; left: 44%; top: 50%; width: 340px; height: 260px; margin: -130px 0 0 -170px; scale: var(--dh-scale, 0.9);
+  transform-style: preserve-3d;
+  transform: rotateX(calc(var(--rx) + var(--tilt-x))) rotateZ(calc(var(--rz) + var(--tilt-z) + var(--scroll-rz)));
+  transition: transform 500ms var(--ease);
+}
+.dh-stage * { transform-style: preserve-3d; }
+.dh-face { position: absolute; }
+.dh-bill {
+  position: absolute; transform-origin: 0 0;
+  transform: translateZ(var(--z, 0px)) rotateZ(calc(-1 * (var(--rz) + var(--tilt-z) + var(--scroll-rz)))) rotateX(calc(-1 * (var(--rx) + var(--tilt-x)))) translate(-50%, -100%);
+}
+/* Paused (button), off-screen, or a light-weight device: freeze where things are. */
+.dh-root[data-paused] *, .dh-root[data-offscreen] *, .scene:not(.is-playing) * { animation-play-state: paused !important; }
+.dh-root[data-static] *, .dh-root[data-static] { animation-duration: 0.001ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; }
+.dh-root[data-static] .dh-stage { transition: none; }
+
+/* Small looping SVG scenes. SVG parts transform around their own box. */
+.scene svg * { transform-box: fill-box; transform-origin: center; }
+.scene .anim-ring { animation: k-ring 2.4s var(--ease) infinite; }
+.scene .anim-pin { animation: k-pin-drop 3.2s var(--ease) infinite; transform-origin: bottom; }
+.scene .anim-snap { animation: k-snap 3.6s var(--ease) infinite; }
+.scene .anim-bubble { animation: k-bubble 4s var(--ease) infinite; }
+.scene .anim-door { animation: k-door 4s var(--ease) infinite; transform-origin: left center; }
+.scene .anim-key { animation: k-key 4s var(--ease) infinite; transform-origin: 20% 50%; }
 @utility skeleton {
   background: linear-gradient(90deg, var(--raised) 0%, var(--brand-soft) 50%, var(--raised) 100%) 0 0 / 200% 100%;
   animation: k-shimmer 1.1s linear infinite;

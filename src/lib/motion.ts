@@ -115,3 +115,27 @@ export function withViewTransition(update: () => void) {
   if (!doc.startViewTransition || prefersReducedMotion()) { update(); return; }
   doc.startViewTransition(() => flushSync(update));
 }
+
+/**
+ * Tilts an element a few degrees towards the pointer (desktop mice and trackpads only).
+ * Writes an inline transform; nothing happens on touch screens or with reduced motion.
+ */
+export function useTilt<T extends HTMLElement>(maxDeg = 3) {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || prefersReducedMotion() || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    let raf = 0;
+    const move = (e: PointerEvent) => {
+      const r = el.getBoundingClientRect();
+      const nx = (e.clientX - r.left) / r.width - 0.5, ny = (e.clientY - r.top) / r.height - 0.5;
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => { el.style.transform = `perspective(900px) rotateX(${(-ny * maxDeg).toFixed(2)}deg) rotateY(${(nx * maxDeg).toFixed(2)}deg)`; });
+    };
+    const leave = () => { cancelAnimationFrame(raf); el.style.transform = ""; };
+    el.addEventListener("pointermove", move);
+    el.addEventListener("pointerleave", leave);
+    return () => { cancelAnimationFrame(raf); el.removeEventListener("pointermove", move); el.removeEventListener("pointerleave", leave); };
+  }, [maxDeg]);
+  return ref;
+}

@@ -244,3 +244,11 @@ export function Burst() {
     </span>
   );
 }
+
+/** A number that counts up from 0 after an optional delay (instant with reduced motion). */
+export function CountUp({ to, delay = 0 }: { to: number; delay?: number }) {
+  const [go, setGo] = useState(delay === 0);
+  useEffect(() => { if (delay) { const t = window.setTimeout(() => setGo(true), delay); return () => window.clearTimeout(t); } }, [delay]);
+  const n = useCountUp(go ? to : 0);
+  return <span className="tabular-nums">{n}</span>;
+}

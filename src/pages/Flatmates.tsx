@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
-import { LuMessageCircle, LuUsers } from "react-icons/lu";
+import { useMemo, useRef, useState } from "react";
+import { LuMessageCircle, LuRotateCcw, LuSparkles, LuUsers } from "react-icons/lu";
 import { Avatar, Dialog, Empty, FitBadge, FitBreakdown, useToast } from "../components/ui";
 import { allSeekers, findSeeker, openThread, sendMessage, useStore } from "../data/store";
-import { fitPeople } from "../domain/fit";
-import { CITIES, DIETS, GUESTS, SHIFTS, type City } from "../domain/types";
+import { fitPeople, type Fit } from "../domain/fit";
+import { CITIES, DIETS, GUESTS, SHIFTS, type City, type Seeker } from "../domain/types";
 import { errorMessage } from "../lib/errors";
 import { inr, niceDate } from "../lib/format";
 import { Link, navigate, useLocation, useTitle } from "../lib/router";
@@ -56,26 +56,7 @@ export function Flatmates() {
       ) : (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {people.map(({ s, fit }) => (
-            <li key={s.id} className="card grid content-start gap-3 p-5">
-              <div className="flex items-center gap-3">
-                <Avatar name={s.name} size={48} />
-                <div className="min-w-0">
-                  <h2 className="truncate text-lg font-bold">{s.name}, {s.age}</h2>
-                  <p className="truncate text-sm text-muted">{s.work}</p>
-                </div>
-              </div>
-              <p className="text-sm">{s.about}</p>
-              <dl className="grid grid-cols-2 gap-2 text-sm">
-                <div><dt className="text-muted">Budget</dt><dd className="font-mono font-semibold">{inr(s.budget)}</dd></div>
-                <div><dt className="text-muted">Moving</dt><dd className="font-semibold">{niceDate(s.moveIn)}</dd></div>
-                <div className="col-span-2"><dt className="text-muted">Areas</dt><dd className="font-semibold">{s.areas}</dd></div>
-              </dl>
-              <div className="flex flex-wrap gap-1.5">
-                {fit && <FitBadge fit={fit} />}
-                <span className="tag">{DIETS[s.diet]}</span><span className="tag">{SHIFTS[s.shift]}</span>
-              </div>
-              <button type="button" className="btn-secondary mt-1" onClick={() => setOpen(s.id)} aria-haspopup="dialog">View profile</button>
-            </li>
+            <FlipCard key={s.id} s={s} fit={fit} signedIn={!!profile} onView={() => setOpen(s.id)} />
           ))}
         </ul>
       )}
@@ -95,5 +76,60 @@ export function Flatmates() {
         )}
       </Dialog>
     </div>
+  );
+}
+
+/**
+ * A flatmate card that flips in 3D: profile on the front, "how you'd get along" on the back.
+ * Only the visible face is reachable by keyboard and screen readers (the other is inert).
+ */
+function FlipCard({ s, fit, signedIn, onView }: { s: Seeker; fit: Fit | null; signedIn: boolean; onView: () => void }) {
+  const [flipped, setFlipped] = useState(false);
+  const frontBtn = useRef<HTMLButtonElement>(null);
+  const backBtn = useRef<HTMLButtonElement>(null);
+  const flip = (to: boolean) => {
+    setFlipped(to);
+    // Keep focus on the matching control of the face that's now showing.
+    requestAnimationFrame(() => (to ? backBtn : frontBtn).current?.focus({ preventScroll: true }));
+  };
+  const face = "card col-start-1 row-start-1 grid content-start gap-3 p-5 [backface-visibility:hidden]";
+  return (
+    <li className="[perspective:1200px]" data-testid="flatmate-card" data-flipped={flipped || undefined}>
+      <div className="grid transition-transform duration-[var(--t-slow)] ease-[var(--ease)] [transform-style:preserve-3d]" style={{ transform: flipped ? "rotateY(180deg)" : "none" }}>
+        <div className={face} inert={flipped || undefined} aria-hidden={flipped || undefined}>
+          <div className="flex items-center gap-3">
+            <Avatar name={s.name} size={48} />
+            <div className="min-w-0">
+              <h2 className="truncate text-lg font-bold">{s.name}, {s.age}</h2>
+              <p className="truncate text-sm text-muted">{s.work}</p>
+            </div>
+          </div>
+          <p className="text-sm">{s.about}</p>
+          <dl className="grid grid-cols-2 gap-2 text-sm">
+            <div><dt className="text-muted">Budget</dt><dd className="font-mono font-semibold">{inr(s.budget)}</dd></div>
+            <div><dt className="text-muted">Moving</dt><dd className="font-semibold">{niceDate(s.moveIn)}</dd></div>
+            <div className="col-span-2"><dt className="text-muted">Areas</dt><dd className="font-semibold">{s.areas}</dd></div>
+          </dl>
+          <div className="flex flex-wrap gap-1.5">
+            {fit && <FitBadge fit={fit} />}
+            <span className="tag">{DIETS[s.diet]}</span><span className="tag">{SHIFTS[s.shift]}</span>
+          </div>
+          <div className="mt-1 grid gap-2">
+            <button ref={frontBtn} type="button" className="btn-ghost border border-line" onClick={() => flip(true)}><LuSparkles aria-hidden />How you'd get along</button>
+            <button type="button" className="btn-secondary" onClick={onView} aria-haspopup="dialog">View profile</button>
+          </div>
+        </div>
+        <div className={`${face} [transform:rotateY(180deg)]`} inert={!flipped || undefined} aria-hidden={!flipped || undefined}>
+          <h2 className="text-lg font-bold">You and {s.name.split(" ")[0]}</h2>
+          {fit ? (
+            <><FitBadge fit={fit} /><FitBreakdown fit={fit} /></>
+          ) : (
+            <p className="text-muted">{signedIn ? "Add your lifestyle to compare." : "Sign up and tell us how you live to see how you'd get along."}</p>
+          )}
+          {!signedIn && <Link to="/signup?next=%2Fflatmates" className="btn-primary">Sign up free</Link>}
+          <button ref={backBtn} type="button" className="btn-ghost justify-self-start" onClick={() => flip(false)}><LuRotateCcw aria-hidden />Back to profile</button>
+        </div>
+      </div>
+    </li>
   );
 }

@@ -32,12 +32,17 @@ export function fitListing(l: Listing, p: Profile): Fit {
 }
 
 export function fitPeople(a: Profile, b: Seeker): Fit {
+  /** "You both: X" when the answers match, otherwise "You: X · Them: Y". */
+  const pair = (x: string, y: string) => (x === y ? `You both: ${x}` : `You: ${x} · Them: ${y}`);
+  const cap = (t: string) => t[0].toUpperCase() + t.slice(1);
+  const smoke = (v: boolean) => (v ? "Smoke" : "Don't smoke");
+  const drink = (v: boolean) => (v ? "Drink" : "Don't drink");
   const rows: FitRow[] = [
-    { key: "diet", label: "Food", ok: a.diet === b.diet, detail: `${dietText(a.diet)} and ${dietText(b.diet)}` },
-    { key: "smoking", label: "Smoking", ok: a.smokes === b.smokes, detail: `${a.smokes ? "Smokes" : "Doesn't smoke"} and ${b.smokes ? "smokes" : "doesn't smoke"}` },
-    { key: "drinking", label: "Drinking", ok: a.drinks === b.drinks, detail: `${a.drinks ? "Drinks" : "Doesn't drink"} and ${b.drinks ? "drinks" : "doesn't drink"}` },
-    { key: "guests", label: "Guests", ok: Math.abs(GUEST_RANK[a.guests] - GUEST_RANK[b.guests]) <= 1, detail: `${guestText(a.guests)} and ${guestText(b.guests)}` },
-    { key: "shift", label: "Work hours", ok: a.shift === b.shift || a.shift === "wfh" || b.shift === "wfh", detail: `${SHIFTS[a.shift]} and ${SHIFTS[b.shift].toLowerCase()}` },
+    { key: "diet", label: "Food", ok: a.diet === b.diet, detail: pair(dietText(a.diet), dietText(b.diet)) },
+    { key: "smoking", label: "Smoking", ok: a.smokes === b.smokes, detail: pair(smoke(a.smokes), smoke(b.smokes)) },
+    { key: "drinking", label: "Drinking", ok: a.drinks === b.drinks, detail: pair(drink(a.drinks), drink(b.drinks)) },
+    { key: "guests", label: "Guests", ok: Math.abs(GUEST_RANK[a.guests] - GUEST_RANK[b.guests]) <= 1, detail: pair(cap(guestText(a.guests)), cap(guestText(b.guests))) },
+    { key: "shift", label: "Work hours", ok: a.shift === b.shift || a.shift === "wfh" || b.shift === "wfh", detail: pair(SHIFTS[a.shift], SHIFTS[b.shift]) },
   ];
   return { pct: score(rows), rows };
 }

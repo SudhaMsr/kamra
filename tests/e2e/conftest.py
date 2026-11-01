@@ -72,9 +72,11 @@ def wait_idle(page: Page):
 
 def settle(page: Page):
     """Waits until every finite CSS animation and transition has finished (infinite ones, like spinners, are ignored)."""
+    # Ignores infinite loops and scroll-driven animations (they follow scrolling and never "finish").
     page.wait_for_function("""() => document.getAnimations().every(a => {
         const t = a.effect && a.effect.getComputedTiming ? a.effect.getComputedTiming() : null;
-        return a.playState !== 'running' || (t && t.iterations === Infinity);
+        const scrollDriven = a.timeline && a.timeline !== document.timeline;
+        return a.playState !== 'running' || scrollDriven || (t && t.iterations === Infinity);
     })""", timeout=5000)
 
 

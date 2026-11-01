@@ -319,7 +319,8 @@ function FlatmateCard({ d }: { d: Draft }) {
 
 function Welcome({ name, role, next }: { name: string; role: Role; next: string }) {
   const headingRef = useRef<HTMLHeadingElement>(null);
-  useEffect(() => { headingRef.current?.focus(); }, []);
+  const [doorOpen, setDoorOpen] = useState(false);
+  useEffect(() => { headingRef.current?.focus(); const t = window.setTimeout(() => setDoorOpen(true), 250); return () => window.clearTimeout(t); }, []);
   const actions = role === "lister"
     ? [["List your room", "/post"], ["See who's looking", "/flatmates"]]
     : role === "seeker"
@@ -327,11 +328,13 @@ function Welcome({ name, role, next }: { name: string; role: Role; next: string 
       : [["See rooms that fit you", next], ["List your room", "/post"]];
   return (
     <div className="wrap grid max-w-xl justify-items-center gap-5 py-16 text-center">
-      <svg viewBox="0 0 80 80" width="96" height="96" aria-hidden className="anim-pop">
-        <circle cx="40" cy="40" r="36" fill="var(--ok-soft)" />
-        <circle cx="40" cy="40" r="36" fill="none" stroke="var(--ok)" strokeWidth="4" className="anim-draw" style={{ "--len": 227 } as CSSProperties} />
-        <path d="M24 41l11 11 22-24" fill="none" stroke="var(--ok)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" className="anim-draw" style={{ "--len": 60, animationDelay: "360ms" } as CSSProperties} />
-      </svg>
+      <div aria-hidden className="relative -my-10 scale-[0.6]">
+        <Door open={doorOpen} />
+        <svg viewBox="0 0 80 80" width="72" height="72" className="anim-pop absolute -right-8 -top-4" style={{ animationDelay: "650ms" }}>
+          <circle cx="40" cy="40" r="36" fill="var(--ok-soft)" stroke="var(--ok)" strokeWidth="4" />
+          <path d="M24 41l11 11 22-24" fill="none" stroke="var(--ok)" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" className="anim-draw" style={{ "--len": 60, animationDelay: "800ms" } as CSSProperties} />
+        </svg>
+      </div>
       <h1 ref={headingRef} tabIndex={-1} className="anim-rise text-3xl font-extrabold outline-none">Welcome to Kamra{name ? `, ${name.split(" ")[0]}` : ""}</h1>
       <p className="anim-rise stagger text-muted" style={{ "--i": 2 } as CSSProperties}>
         {role === "lister" ? "List your room and we'll show you how well people looking nearby fit your household." : "Every room now shows how well its household fits the way you live."}

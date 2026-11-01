@@ -1,12 +1,13 @@
 import { useMemo, useState, type FormEvent } from "react";
-import { LuArrowRight, LuBadgeCheck, LuBuilding2, LuLeaf, LuMessageCircle, LuPhoneOff, LuShieldCheck, LuTrainFront, LuUsers } from "react-icons/lu";
+import { LuArrowRight, LuBuilding2, LuLeaf, LuMessageCircle, LuPhoneOff, LuShieldCheck, LuTrainFront, LuUsers } from "react-icons/lu";
 import { allListings, useStore } from "../data/store";
 import { KIND_LABEL, LANDMARKS, landmarksIn } from "../domain/landmarks";
 import { toParams } from "../domain/search";
 import { CITIES, type City } from "../domain/types";
-import { inr } from "../lib/format";
 import { Link, navigate, useTitle } from "../lib/router";
-import { RevealItem, RoomArt } from "../components/ui";
+import { Dollhouse } from "../components/Dollhouse";
+import { MoveInScene, ProfileScene, SearchScene } from "../components/Scenes";
+import { CountUp, RevealItem } from "../components/ui";
 
 export function Home() {
   useTitle("");
@@ -77,23 +78,19 @@ export function Home() {
             </div>
           </div>
 
-          <div aria-hidden className="relative hidden pt-8 md:block">
-            <div className="card anim-float overflow-hidden shadow-xl">
-              <RoomArt seed="hero-room" className="h-56 w-full" />
-              <div className="grid gap-2 p-5">
-                <div className="flex items-baseline justify-between"><span className="font-display text-lg font-bold">Bright room with balcony</span><span className="font-mono">{inr(16500)}</span></div>
-                <span className="text-sm text-muted">HSR Layout · 2.1 km from ORR Bellandur</span>
-                <div className="flex gap-1.5"><span className="tag tag-ok">92% fit</span><span className="tag">No restriction</span><span className="tag tag-ok"><LuBadgeCheck />ID verified</span></div>
+          <div className="relative hidden aspect-[5/4] w-full md:block">
+            <Dollhouse>
+              <div aria-hidden className="pointer-events-none absolute bottom-2 right-0 hidden w-48 rotate-[2deg] lg:block">
+                <div className="card anim-in-right p-4 shadow-xl ring-1 ring-line" style={{ animationDelay: "2200ms" }}>
+                  <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted">Why <CountUp to={92} delay={2200} />% fit</p>
+                  <ul className="grid gap-1.5 text-sm">
+                    <li className="flex justify-between"><span>Kitchen</span><span className="font-bold text-ok">Match</span></li>
+                    <li className="flex justify-between"><span>Work hours</span><span className="font-bold text-ok">Match</span></li>
+                    <li className="flex justify-between"><span>Guests</span><span className="font-bold text-warn">Clash</span></li>
+                  </ul>
+                </div>
               </div>
-            </div>
-            <div className="absolute -right-3 top-0 w-56 rotate-[3deg]"><div className="card anim-in-right p-4 shadow-xl ring-1 ring-line" style={{ animationDelay: "420ms" }}>
-              <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted">Why 92%</p>
-              <ul className="grid gap-1.5 text-sm">
-                <li className="flex justify-between"><span>Kitchen</span><span className="font-bold text-ok">Match</span></li>
-                <li className="flex justify-between"><span>Work hours</span><span className="font-bold text-ok">Match</span></li>
-                <li className="flex justify-between"><span>Guests</span><span className="font-bold text-warn">Clash</span></li>
-              </ul>
-            </div></div>
+            </Dollhouse>
           </div>
         </div>
       </section>
@@ -112,6 +109,7 @@ export function Home() {
             const I = Icon as typeof LuUsers;
             return (
               <RevealItem key={t as string} i={i} className="card grid content-start gap-3 p-6">
+                {[<ProfileScene key="p" />, <SearchScene key="s" />, <MoveInScene key="m" />][i]}
                 <span className="flex items-center gap-3">
                   <span className="grid h-10 w-10 place-items-center rounded-xl bg-brand text-brand-ink"><I aria-hidden /></span>
                   <span className="font-mono text-sm text-muted">Step {i + 1}</span>

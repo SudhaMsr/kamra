@@ -85,4 +85,11 @@ await fs.writeFile(path.join(out, ".nojekyll"), "");
 for (const f of await fs.readdir(path.join(root, "public"))) await fs.copyFile(path.join(root, "public", f), path.join(out, f));
 
 const kb = (s) => (Buffer.byteLength(s) / 1024).toFixed(1) + " kB";
+// Size budget (gzipped, what users actually download). Fails the build if exceeded.
+const { gzipSync } = await import("node:zlib");
+const gz = (s) => gzipSync(Buffer.from(s)).length / 1024;
+const BUDGET = { js: 150, css: 16 };
+const jsGz = gz(jsCode), cssGz = gz(cssCode);
+console.log(`gzipped: js ${jsGz.toFixed(1)} kB (budget ${BUDGET.js})  css ${cssGz.toFixed(1)} kB (budget ${BUDGET.css})`);
+if (!watch && (jsGz > BUDGET.js || cssGz > BUDGET.css)) { console.error("Bundle size budget exceeded."); process.exit(1); }
 console.log(`built in ${Date.now() - t0} ms  js ${kb(jsCode)}  css ${kb(cssCode)}`);

@@ -3,6 +3,7 @@ import { commuteMinutes, formatDistance } from "../domain/geo";
 import type { Result } from "../domain/search";
 import { GENDERS, ROOM_TYPES } from "../domain/types";
 import { inr } from "../lib/format";
+import { useTilt } from "../lib/motion";
 import { Link } from "../lib/router";
 import { FitBadge, RoomArt, TrustTags } from "./ui";
 
@@ -10,10 +11,12 @@ type Props = { result: Result; landmark: string; saved: boolean; onToggleSave: (
 
 export function ListingCard({ result, landmark, saved, onToggleSave, active, onActivate }: Props) {
   const { listing: l, distance, fit } = result;
+  const tiltRef = useTilt<HTMLElement>(2.5);
   return (
     <article
+      ref={tiltRef}
       onMouseEnter={() => onActivate?.(true)} onMouseLeave={() => onActivate?.(false)}
-      className={`card group relative grid overflow-hidden transition-[box-shadow,transform] duration-[var(--t-fast)] ease-[var(--ease)] @xl:grid-cols-[13rem_1fr] ${active ? "-translate-y-0.5 shadow-md ring-2 ring-marigold" : "hover:-translate-y-0.5 hover:shadow-md"}`}
+      className={`card group relative grid overflow-hidden transition-[box-shadow,transform,translate] duration-[var(--t-fast)] ease-[var(--ease)] @xl:grid-cols-[13rem_1fr] ${active ? "-translate-y-0.5 shadow-md ring-2 ring-marigold" : "hover:-translate-y-0.5 hover:shadow-md"}`}
     >
       <div className="relative aspect-[16/9] bg-raised @xl:aspect-auto @xl:h-full">
         {l.photos[0]
