@@ -1,5 +1,6 @@
 import { LuBadgeCheck, LuFlag, LuIndianRupee, LuLock, LuPhoneOff, LuShieldCheck } from "react-icons/lu";
 import { Link, useTitle } from "../lib/router";
+import { Mascot } from "../components/ui";
 
 export function Safety() {
   useTitle("Safety and privacy");
@@ -35,6 +36,7 @@ export function NotFoundPage() {
   useTitle("Page not found");
   return (
     <div className="wrap grid max-w-xl justify-items-start gap-4 py-16">
+      <Mascot size={110} mood="lost" />
       <p className="font-mono text-sm text-muted">404</p>
       <h1 className="text-4xl font-extrabold">This page doesn't exist</h1>
       <p className="text-muted">The link may be old, or the room may have been taken down.</p>

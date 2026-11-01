@@ -1,3 +1,4 @@
+import { Mascot } from "./Mushroom";
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useCountUp, useReveal } from "../lib/motion";
 import { LuBadgeCheck, LuCircleCheck, LuHouse, LuShieldCheck, LuTriangleAlert, LuX } from "react-icons/lu";
@@ -131,11 +132,16 @@ export function Toggle({ label, checked, onChange, id }: { label: string; checke
   );
 }
 
+export { Mascot } from "./Mushroom";
+
 export function Empty({ icon, title, body, action, page }: { icon: ReactNode; title: string; body: string; action?: ReactNode; page?: boolean }) {
   const H = page ? "h1" : "h2";
   return (
     <div className="card grid justify-items-center gap-3 px-6 py-12 text-center">
-      <div className="grid h-14 w-14 place-items-center rounded-2xl bg-brand-soft text-brand" aria-hidden>{icon}</div>
+      <div className="relative" aria-hidden>
+        <Mascot size={92} />
+        <div className="absolute -right-3 bottom-1 grid h-10 w-10 place-items-center rounded-xl bg-brand-soft text-brand shadow ring-2 ring-surface [&_svg]:h-5 [&_svg]:w-5">{icon}</div>
+      </div>
       <H className={page ? "text-2xl font-extrabold" : "text-lg font-bold"}>{title}</H>
       <p className="max-w-sm text-muted">{body}</p>
       {action}
@@ -196,9 +202,9 @@ export function TrustTags({ l }: { l: Listing }) {
 /* ---------- generated room artwork, used until the lister adds photos ---------- */
 // [furniture, accent, light-theme wall, dark-theme wall]
 const PALETTES = [
-  ["#2a31a0", "#e8930c", "#f3ead8", "#262c63"], ["#13703f", "#e8930c", "#e9f1ea", "#163a2d"], ["#7a2f6b", "#f2b544", "#f4e7ee", "#3a2140"],
-  ["#0f5c78", "#ef8a5a", "#e3eef3", "#16384a"], ["#4a3d9e", "#f0c24b", "#eceaf7", "#2b2660"],
-];
+  ["#2f5e33", "#e7a23a", "#f3ead8", "#22382a"], ["#c8452e", "#e7a23a", "#f6ecdc", "#3a2a22"], ["#6f4a2c", "#8fb36a", "#efe6d2", "#2c2a20"],
+  ["#4c7536", "#c8452e", "#eef1df", "#1f3324"], ["#8a5a2b", "#f0c05a", "#f4ead6", "#33291c"],
+]
 export function RoomArt({ seed, className = "", label }: { seed: string; className?: string; label?: string }) {
   let h = 0; for (const c of seed) h = (h * 33 + c.charCodeAt(0)) >>> 0;
   const [a, b, bg, bgDark] = PALETTES[h % PALETTES.length];

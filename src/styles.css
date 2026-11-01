@@ -7,55 +7,61 @@
    Ink indigo for structure and actions, marigold as the single warm accent (backgrounds and marks only, never body text),
    neutrals biased slightly toward indigo. */
 :root {
-  --paper: #f5f5f9;
-  --surface: #ffffff;
-  --raised: #eceef6;
-  --ink: #141738;
-  --muted: #565b78;
-  --line: #dcdfeb;
-  --brand: #2a31a0;
-  --brand-hover: #222886;
+  /* Kamra "mushROOM" palette: forest floor in daylight. Moss green for actions, chanterelle amber as the accent,
+     fly-agaric red only in illustrations. Neutrals are warm cream, biased towards the moss. */
+  --paper: #f6f1e6;
+  --surface: #fffdf8;
+  --raised: #efe6d6;
+  --ink: #22261b;
+  --muted: #5b5a49;
+  --line: #ddd2bd;
+  --brand: #2f5e33;
+  --brand-hover: #244a28;
   --brand-ink: #ffffff;
-  --brand-soft: #e5e7fa;
-  --marigold: #e8930c;
-  --marigold-soft: #fdefd4;
-  --ok: #13703f;
-  --ok-soft: #dbf2e4;
-  --warn: #a8411b;
-  --warn-soft: #fbe5da;
-  --map-land: #eef0f6;
-  --map-ring: #c9cde0;
-  --field: #ffffff;
-  --field-line: #767ca3;
-  /* 3D scene palette (walls, floors, furniture) */
-  --dh-wall: #e4e6f4; --dh-wall-side: #cfd3ea; --dh-floor-a: #f3ead8; --dh-floor-b: #e6edf7; --dh-floor-c: #ecf3ea;
-  --dh-wood: #c99a5b; --dh-wood-side: #a87a40; --dh-shadow: rgba(20, 23, 56, 0.16);
+  --brand-soft: #e1ecd9;
+  --marigold: #e7a23a;
+  --marigold-soft: #fbecd2;
+  --ok: #2b6b2f;
+  --ok-soft: #dcefd8;
+  --warn: #a33a22;
+  --warn-soft: #f9e2d9;
+  --map-land: #ece6d6;
+  --map-ring: #c9bfa6;
+  --field: #fffdf8;
+  --field-line: #857c66;
+  /* illustration palette */
+  --cap: #c8452e; --cap-shade: #9c3322; --stem: #f3e6cf; --stem-shade: #dccbaa; --moss: #6f9a4f; --moss-deep: #4c7536;
+  --sky-a: #fbf2df; --sky-b: #e9f0dc; --tree: #c9d6b4; --tree-far: #dfe6cf; --glow: #ffd27a;
+  --dh-wall: #efe4cf; --dh-wall-side: #ddcdb0; --dh-floor-a: #f3ead8; --dh-floor-b: #e6edd9; --dh-floor-c: #ecf3e2;
+  --dh-wood: #b98a52; --dh-wood-side: #94693a; --dh-shadow: rgba(34, 38, 27, 0.16);
   color-scheme: light;
 }
 [data-theme="dark"] {
-  /* Dark palette: deeper ground, clearly separated surfaces, brighter secondary text and borders. */
-  --paper: #0b0d1d;
-  --surface: #151937;
-  --raised: #222850;
-  --ink: #f3f4ff;
-  --muted: #c0c4e0;
-  --line: #363d72;
-  --brand: #9aa3ff;
-  --brand-hover: #b7bdff;
-  --brand-ink: #0b0d1d;
-  --brand-soft: #2c3478;
-  --marigold: #f6b84e;
-  --marigold-soft: #4a3714;
-  --ok: #6ee0a8;
-  --ok-soft: #173f2d;
-  --warn: #ffa88a;
-  --warn-soft: #4d2619;
-  --map-land: #181c40;
-  --map-ring: #4a5290;
-  --field: #1c2148;
-  --field-line: #6670b8;
-  --dh-wall: #262c5c; --dh-wall-side: #1d2249; --dh-floor-a: #3a2f22; --dh-floor-b: #1f2a46; --dh-floor-c: #1f3a33;
-  --dh-wood: #8a6436; --dh-wood-side: #6b4c27; --dh-shadow: rgba(0, 0, 0, 0.4);
+  /* Forest at night: deep green-black ground, lit moss and amber, fireflies in the hero. */
+  --paper: #0e1410;
+  --surface: #162019;
+  --raised: #1f2b22;
+  --ink: #eef1e3;
+  --muted: #bcc3aa;
+  --line: #34433a;
+  --brand: #a3d38e;
+  --brand-hover: #bde2ab;
+  --brand-ink: #0e1410;
+  --brand-soft: #2a4330;
+  --marigold: #f1b75c;
+  --marigold-soft: #45351a;
+  --ok: #86dd96;
+  --ok-soft: #1a3a22;
+  --warn: #ff9f86;
+  --warn-soft: #4a2219;
+  --map-land: #18231b;
+  --map-ring: #3f5444;
+  --field: #1b261e;
+  --field-line: #6f8a72;
+  --cap: #b84530; --cap-shade: #8a2f20; --stem: #d9ccb2; --stem-shade: #b3a383; --moss: #3d6332; --moss-deep: #2c4a25;
+  --sky-a: #0f1a16; --sky-b: #16261d; --tree: #1d2e22; --tree-far: #15221a; --glow: #ffc861;
+  --dh-wall: #2a3a2d; --dh-wall-side: #203024; --dh-floor-a: #3a2f22; --dh-floor-b: #1f2e26; --dh-floor-c: #22382a;
+  --dh-wood: #8a6436; --dh-wood-side: #6b4c27; --dh-shadow: rgba(0, 0, 0, 0.45);
   color-scheme: dark;
 }
 
@@ -158,6 +164,9 @@
 @keyframes k-bubble { 0%, 5% { opacity: 0; transform: scale(0.6); } 15%, 40% { opacity: 1; transform: scale(1); } 50%, 100% { opacity: 0; transform: scale(0.9); } }
 @keyframes k-door { 0%, 45% { transform: scaleX(1); } 62%, 88% { transform: scaleX(0.25); } 100% { transform: scaleX(1); } }
 @keyframes k-key { 0%, 35% { opacity: 0; transform: rotate(0deg); } 42% { opacity: 1; transform: rotate(0deg); } 52%, 88% { opacity: 1; transform: rotate(90deg); } 100% { opacity: 0; transform: rotate(90deg); } }
+@keyframes k-firefly { 0%, 100% { opacity: 0.15; translate: 0 0; } 30% { opacity: 1; translate: 8px -10px; } 60% { opacity: 0.5; translate: -6px -4px; } }
+@keyframes k-wobble { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(-4deg); } 75% { transform: rotate(4deg); } }
+@keyframes k-blink { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
 @keyframes k-float { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-8px) rotate(-2deg); } }
 
 @utility anim-rise { animation: k-rise var(--t-med) var(--ease) both; }
@@ -203,6 +212,13 @@
 .dh-root[data-paused] *, .dh-root[data-offscreen] *, .scene:not(.is-playing) * { animation-play-state: paused !important; }
 .dh-root[data-static] *, .dh-root[data-static] { animation-duration: 0.001ms !important; animation-delay: 0ms !important; animation-iteration-count: 1 !important; }
 .dh-root[data-static] .dh-stage { transition: none; }
+.dh-firefly { display: none; }
+/* The mushroom mascot sways and blinks; pivoting at its foot. */
+.mascot * { transform-box: fill-box; }
+.mascot .mascot-body { transform-origin: 50% 100%; animation: k-wobble 3.6s ease-in-out infinite; }
+.mascot .mascot-eyes { transform-origin: center; animation: k-blink 4.8s ease-in-out infinite; }
+.mascot .mascot-q { transform-origin: center; animation: k-float 2.6s ease-in-out infinite; }
+[data-theme="dark"] .dh-firefly { display: block; }
 
 /* Small looping SVG scenes. SVG parts transform around their own box. */
 .scene svg * { transform-box: fill-box; transform-origin: center; }

@@ -129,3 +129,25 @@ def test_no_horizontal_scroll_with_the_scene_on_tablets(browser):
     go(page)
     assert page.evaluate("() => document.documentElement.scrollWidth <= innerWidth")
     ctx.close()
+
+
+def test_mushroom_village_lights_the_room_for_rent(page: Page):
+    go(page)
+    settle(page)
+    root = hero(page)
+    # Three mushroom houses, and the one for rent has lit windows.
+    assert root.locator("svg[data-house]").count() == 3
+    assert root.locator("svg[data-house] circle[fill='#ffd27a'][style*='k-glow']").count() == 2
+    # Fireflies are a dark-theme detail only.
+    assert page.locator(".dh-firefly").first.evaluate("el => getComputedStyle(el).display") == "none"
+    page.evaluate("() => document.documentElement.setAttribute('data-theme', 'dark')")
+    assert page.locator(".dh-firefly").first.evaluate("el => getComputedStyle(el).display") == "block"
+
+
+def test_mushroom_friend_shows_on_lost_and_empty_pages(page: Page):
+    go(page, "/no-such-page")
+    expect(page.get_by_role("heading", name="This page doesn't exist")).to_be_visible()
+    expect(page.locator("svg.mascot")).to_be_visible()
+    expect(page.locator("svg.mascot")).to_have_attribute("aria-hidden", "true")
+    go(page, "/messages")
+    expect(page.locator("svg.mascot")).to_be_visible()

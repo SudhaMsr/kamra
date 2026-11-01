@@ -52,7 +52,7 @@ export function ListingCard({ result, landmark, saved, onToggleSave, active, onA
       <button
         type="button" onClick={onToggleSave} aria-pressed={saved}
         aria-label={saved ? `Remove ${l.title} from saved` : `Save ${l.title}`}
-        className={`absolute right-2 top-2 z-10 grid h-10 w-10 place-items-center rounded-full shadow @xl:left-[10.6rem] @xl:right-auto ${saved ? "bg-marigold text-[#141738]" : "bg-surface/95 text-ink ring-1 ring-line hover:bg-marigold-soft"}`}
+        className={`absolute right-2 top-2 z-10 grid h-10 w-10 place-items-center rounded-full shadow @xl:left-[10.6rem] @xl:right-auto ${saved ? "bg-marigold text-[#22261b]" : "bg-surface/95 text-ink ring-1 ring-line hover:bg-marigold-soft"}`}
       >
         <LuBookmark key={String(saved)} aria-hidden className={saved ? "anim-pop fill-current" : ""} />
       </button>

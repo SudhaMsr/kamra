@@ -1,3 +1,4 @@
+import { LogoMark } from "./Mushroom";
 import { type ReactNode } from "react";
 import { LuBookmark, LuCalendar, LuHouse, LuLogIn, LuMessageCircle, LuMonitor, LuMoon, LuPlus, LuSearch, LuSun, LuUser, LuUsers } from "react-icons/lu";
 import { unreadCount, useStore, type Role, type Theme } from "../data/store";
@@ -26,12 +27,7 @@ const NAV: Record<Role | "guest", NavItem[]> = {
 function Logo() {
   return (
     <Link to="/" className="group flex items-center gap-2 rounded-lg" aria-label="Kamra home">
-      <svg viewBox="0 0 64 64" width="30" height="30" aria-hidden className="transition-transform duration-[var(--t-med)] ease-[var(--ease)] group-hover:-rotate-6">
-        <rect width="64" height="64" rx="14" fill="var(--brand)" />
-        <path d="M14 30 32 15l18 15v19a2 2 0 0 1-2 2H16a2 2 0 0 1-2-2z" fill="none" stroke="var(--brand-ink)" strokeWidth="4" strokeLinejoin="round" />
-        <path d="M26 51V38h12v13" fill="none" stroke="var(--brand-ink)" strokeWidth="4" strokeLinejoin="round" />
-        <circle cx="46" cy="18" r="6" fill="var(--marigold)" />
-      </svg>
+      <LogoMark className="transition-transform duration-[var(--t-med)] ease-[var(--ease)] group-hover:-rotate-6" />
       <span className="font-display text-[1.45rem] font-extrabold tracking-tight text-ink">kamra</span>
     </Link>
   );
@@ -81,7 +77,7 @@ export function Layout({ children }: { children: ReactNode }) {
                 <li key={n.to}>
                   <Link to={n.to} className={`relative inline-flex items-center gap-2 rounded-xl px-3 py-2 text-[0.95rem] font-semibold transition-colors ${isActive(n.match) ? "bg-brand-soft text-brand dark:text-ink" : "text-ink hover:bg-raised"}`}>
                     <n.icon aria-hidden />{n.label}
-                    {n.to === "/messages" && unread > 0 && <span key={unread} className="anim-pop ml-0.5 rounded-full bg-marigold px-1.5 text-xs font-bold text-[#141738]">{unread}<span className="sr-only"> unread</span></span>}
+                    {n.to === "/messages" && unread > 0 && <span key={unread} className="anim-pop ml-0.5 rounded-full bg-marigold px-1.5 text-xs font-bold text-[#22261b]">{unread}<span className="sr-only"> unread</span></span>}
                   </Link>
                 </li>
               ))}
@@ -91,7 +87,7 @@ export function Layout({ children }: { children: ReactNode }) {
             <div className="hidden lg:block"><ThemeSwitch /></div>
             <Link to="/saved" className={`relative grid h-10 w-10 place-items-center rounded-xl ${path === "/saved" ? "bg-brand-soft text-brand" : "hover:bg-raised"}`} aria-label={`Saved rooms (${savedCount})`}>
               <LuBookmark aria-hidden size={20} />
-              {savedCount > 0 && <span key={savedCount} aria-hidden className="anim-pop absolute -right-0.5 -top-0.5 rounded-full bg-marigold px-1.5 text-[0.7rem] font-bold text-[#141738]">{savedCount}</span>}
+              {savedCount > 0 && <span key={savedCount} aria-hidden className="anim-pop absolute -right-0.5 -top-0.5 rounded-full bg-marigold px-1.5 text-[0.7rem] font-bold text-[#22261b]">{savedCount}</span>}
             </Link>
             {account ? (
               <Link to="/profile" className={`inline-flex h-10 items-center gap-2 rounded-xl pl-1 pr-3 font-semibold ${path === "/profile" ? "bg-brand-soft" : "hover:bg-raised"}`}>

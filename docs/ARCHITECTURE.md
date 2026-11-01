@@ -59,12 +59,17 @@ elements aren't remounted and keep focus. Everything collapses to its end state 
 
 ## 3D and motion graphics
 
-- **Hero dollhouse** (`src/components/Dollhouse.tsx`): a cut-away flat built from CSS 3D transforms, no WebGL or
-  library. Boxes draw only their camera-facing faces; labels and people are billboards that counter-rotate to face
-  the camera. Opacity/transform entrance animations live on wrappers, never on the 3D root or a billboard, because
-  either would flatten the scene. Pointer tilt writes CSS variables once per frame; a CSS scroll-driven animation
-  turns the scene while scrolling where supported. A visible pause control meets WCAG 2.2.2; the scene also freezes
-  off-screen, and reduced-motion, data-saver and low-memory devices get the final still frame.
+- **Hero mushroom village** (`src/components/Dollhouse.tsx`): a floating patch of moss with three mushroom houses,
+  built from CSS 3D transforms, no WebGL or library. The ground, soil edge, fence and logs are real 3D faces; houses,
+  trees, people and labels are SVG billboards that counter-rotate to face the camera, like a paper theatre. The house
+  for rent lights its windows; fireflies appear in the dark theme. Opacity/transform entrance animations live on
+  wrappers, never on the 3D root or a billboard, because either would flatten the scene. Pointer tilt writes CSS
+  variables once per frame; a CSS scroll-driven animation turns the scene while scrolling where supported. A visible
+  pause control meets WCAG 2.2.2; the scene also freezes off-screen, and reduced-motion, data-saver and low-memory
+  devices get the final still frame.
+- **Mushroom theme**: one forest palette (moss green brand, toadstool red, cream stems, marigold) defined as tokens in
+  `src/styles.css`, with a dark "forest at night" variant; all text and control edges are contrast-tested in both.
+  A mushroom friend (`Mascot` in `ui.tsx`) sways and blinks on the 404, not-found and empty states.
 - **How it works scenes** (`src/components/Scenes.tsx`): looping SVG animations that only run while on screen.
 - **Cards**: room cards tilt towards the pointer (fine pointers only); flatmate cards flip in 3D with the hidden
   face made `inert`.

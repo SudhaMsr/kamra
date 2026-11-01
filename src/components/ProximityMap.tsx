@@ -105,7 +105,7 @@ export function ProximityMap({ origin, radiusKm, results, activeId, onActivate, 
                   onMouseEnter={() => onActivate(r.listing.id)} onMouseLeave={() => onActivate(null)}
                   onFocus={() => onActivate(r.listing.id)} onBlur={() => onActivate(null)}
                   aria-label={`${r.listing.title}, ${r.listing.locality}, ${short(r.listing.rent)} a month, ${formatDistance(r.distance)} away`}
-                  className={`pointer-events-auto absolute -translate-x-1/2 -translate-y-full rounded-full px-2 py-0.5 font-mono text-[0.72rem] font-semibold shadow anim-drop stagger transition-[scale,background-color] duration-[var(--t-fast)] ${on ? "z-20 scale-110 bg-marigold text-[#141738]" : "z-10 bg-surface text-ink ring-1 ring-map-ring hover:bg-marigold hover:text-[#141738]"}`}
+                  className={`pointer-events-auto absolute -translate-x-1/2 -translate-y-full rounded-full px-2 py-0.5 font-mono text-[0.72rem] font-semibold shadow anim-drop stagger transition-[scale,background-color] duration-[var(--t-fast)] ${on ? "z-20 scale-110 bg-marigold text-[#22261b]" : "z-10 bg-surface text-ink ring-1 ring-map-ring hover:bg-marigold hover:text-[#22261b]"}`}
                   style={{ left: `${p.left}%`, top: `${p.top}%`, "--i": rank.get(r.listing.id) ?? 0 } as CSSProperties}
                 >
                   {short(r.listing.rent)}
