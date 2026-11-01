@@ -230,7 +230,6 @@ function MessageDialog({ open, onClose, listingId, owner, locality }: { open: bo
 }
 
 function VisitDialog({ open, onClose, listingId }: { open: boolean; onClose: () => void; listingId: string }) {
-  const toast = useToast();
   const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); tomorrow.setHours(18, 0, 0, 0);
   const [slot, setSlot] = useState(isoLocalDateTime(tomorrow));
   const [note, setNote] = useState("");
