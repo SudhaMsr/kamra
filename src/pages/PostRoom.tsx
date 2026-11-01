@@ -11,6 +11,7 @@ import {
 import { errorMessage } from "../lib/errors";
 import { inr, isoDay } from "../lib/format";
 import { compressImage } from "../lib/image";
+import { shake } from "../lib/motion";
 import { Link, navigate, useLocation, useTitle } from "../lib/router";
 
 type Draft = {
@@ -76,6 +77,8 @@ function Wizard({ initial, editId }: { initial: Draft; editId?: string }) {
   const [geoMsg, setGeoMsg] = useState<string>();
   const fileRef = useRef<HTMLInputElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [dir, setDir] = useState<"right" | "left">("right");
   const toast = useToast();
   const set = <K extends keyof Draft>(k: K, v: Draft[K]) => setD((x) => ({ ...x, [k]: v }));
 
@@ -85,16 +88,23 @@ function Wizard({ initial, editId }: { initial: Draft; editId?: string }) {
   const err = (k: string) => (showErrors ? errors[k] : undefined);
   const isLast = step === STEPS.length;
 
+  /** Shakes the form and moves focus to the first field with a problem (in on-screen order). */
+  const flagErrors = () => {
+    setShowErrors(true);
+    shake(formRef.current);
+    requestAnimationFrame(() => (formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]'))?.focus());
+  };
+
   const go = (to: number) => {
-    if (to > step && stepErrors(step).length) { setShowErrors(true); toast(stepErrors(step)[0][1], "error"); return; }
-    setShowErrors(false); setStep(to);
+    if (to > step && stepErrors(step).length) { flagErrors(); toast(stepErrors(step)[0][1], "error"); return; }
+    setShowErrors(false); setDir(to > step ? "right" : "left"); setStep(to);
     requestAnimationFrame(() => headingRef.current?.focus());
   };
 
   const publish = async (e: FormEvent) => {
     e.preventDefault();
     const bad = STEPS.findIndex((_, i) => stepErrors(i).length);
-    if (bad >= 0) { setStep(bad); setShowErrors(true); toast(stepErrors(bad)[0][1], "error"); return; }
+    if (bad >= 0) { setDir("left"); setStep(bad); flagErrors(); toast(stepErrors(bad)[0][1], "error"); return; }
     setBusy(true);
     try {
       const l = saveListing({ ...d, deposit: d.deposit === "" ? 0 : d.deposit }, editId);
@@ -149,7 +159,10 @@ function Wizard({ initial, editId }: { initial: Draft; editId?: string }) {
                 <button type="button" onClick={() => (i < step ? go(i) : i === step + 1 ? go(i) : undefined)} disabled={i > step + 1}
                   aria-current={cur ? "step" : undefined}
                   className="grid w-full gap-1.5 text-left disabled:cursor-not-allowed">
-                  <span className={`h-1.5 rounded-full ${done ? "bg-brand" : cur ? "bg-marigold" : "bg-line"}`} />
+                  <span className="h-1.5 overflow-hidden rounded-full bg-line">
+                    <span className={`block h-full origin-left rounded-full transition-[transform,background-color] duration-[var(--t-slow)] ease-[var(--ease)] ${done ? "bg-brand" : "bg-marigold"}`}
+                      style={{ transform: `scaleX(${done || cur ? 1 : 0})` }} />
+                  </span>
                   <span className={`hidden text-xs font-semibold sm:block ${cur ? "text-ink" : "text-muted"}`}>{label}</span>
                   <span className="sr-only">{done ? " (done)" : ""}</span>
                 </button>
@@ -159,7 +172,8 @@ function Wizard({ initial, editId }: { initial: Draft; editId?: string }) {
         </ol>
       </nav>
 
-      <form onSubmit={isLast ? publish : (e) => { e.preventDefault(); go(step + 1); }} noValidate className="card grid gap-6 p-5 sm:p-7">
+      <form ref={formRef} onSubmit={isLast ? publish : (e) => { e.preventDefault(); go(step + 1); }} noValidate className="card grid gap-6 overflow-hidden p-5 sm:p-7">
+        <div key={step} className={`grid gap-6 ${dir === "right" ? "anim-in-right" : "anim-in-left"}`}>
         {step === 0 && (
           <>
             <Field id="title" label="Headline" hint="What makes it worth a look? e.g. “Bright room with balcony near the metro”" error={err("title")}>
@@ -287,7 +301,7 @@ function Wizard({ initial, editId }: { initial: Draft; editId?: string }) {
             <p className="text-muted">Rooms with photos get far more messages. Add up to 6; they're resized on your device before upload.</p>
             <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3" aria-label="Your photos">
               {d.photos.map((p, i) => (
-                <li key={i} className="relative aspect-[4/3] overflow-hidden rounded-xl bg-raised">
+                <li key={`${p.length}:${p.slice(-24)}`} className="anim-pop relative aspect-[4/3] overflow-hidden rounded-xl bg-raised">
                   <img src={p} alt={`Photo ${i + 1}${i === 0 ? " (cover)" : ""}`} className="h-full w-full object-cover" />
                   {i === 0 && <span className="absolute left-2 top-2 tag bg-surface text-ink">Cover</span>}
                   <div className="absolute right-2 top-2 flex gap-1">
@@ -325,6 +339,8 @@ function Wizard({ initial, editId }: { initial: Draft; editId?: string }) {
               : <p className="rounded-xl bg-ok-soft p-3 text-sm font-semibold text-ok">Everything looks good.</p>}
           </div>
         )}
+
+        </div>
 
         <div className="flex items-center justify-between gap-3 border-t border-line pt-5">
           {step > 0 ? <button type="button" className="btn-ghost" onClick={() => go(step - 1)}><LuArrowLeft aria-hidden />Back</button> : <span />}

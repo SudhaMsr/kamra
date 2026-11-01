@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
 import {
   LuArrowLeft, LuBookmark, LuCalendar, LuCigarette, LuCopy, LuFlag, LuLeaf, LuLock, LuMapPin, LuMessageCircle,
   LuPencil, LuPhoneOff, LuUsers, LuUtensils, LuWine,
@@ -11,6 +11,7 @@ import { KIND_LABEL, LANDMARKS } from "../domain/landmarks";
 import { DIETS, FURNISHING, GENDERS, GUESTS, ROOM_TYPES, SHIFTS } from "../domain/types";
 import { inr, isoLocalDateTime, niceDate, niceSlot } from "../lib/format";
 import { errorMessage } from "../lib/errors";
+import { shake } from "../lib/motion";
 import { Link, navigate, useBack, useTitle } from "../lib/router";
 import { NotFound } from "./NotFound";
 
@@ -202,6 +203,7 @@ function MessageDialog({ open, onClose, listingId, owner, locality }: { open: bo
   const profile = useStore((s) => s.profile);
   const [text, setText] = useState<string | null>(null);
   const [err, setErr] = useState<string>();
+  const formRef = useRef<HTMLFormElement>(null);
   const draft = profile ? `Hi ${owner.split(" ")[0]}, I'm ${profile.name.split(" ")[0]}, ${profile.age}, working as ${profile.work.toLowerCase()}. I'm interested in your room in ${locality}. Is it still available?` : "";
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -212,11 +214,11 @@ function MessageDialog({ open, onClose, listingId, owner, locality }: { open: bo
       toast(m.redacted ? "Sent. We hid the phone number or email in your message." : "Message sent.");
       onClose(); setText(null);
       navigate(`/messages/${t.id}`);
-    } catch (e) { setErr(errorMessage(e)); }
+    } catch (e) { setErr(errorMessage(e)); shake(formRef.current); }
   };
   return (
     <Dialog open={open} onClose={onClose} title={`Message ${owner.split(" ")[0]}`}>
-      <form onSubmit={submit} noValidate className="grid gap-4">
+      <form ref={formRef} onSubmit={submit} noValidate className="grid gap-4">
         <Field id="msg" label="Your message" hint="Your fit profile is shared with the lister. Phone numbers and emails are hidden automatically." error={err}>
           {(a) => <textarea {...a} rows={5} maxLength={1000} className="input" value={text ?? draft} onChange={(e) => { setText(e.target.value); setErr(undefined); }} />}
         </Field>
@@ -233,15 +235,38 @@ function VisitDialog({ open, onClose, listingId }: { open: boolean; onClose: () 
   const [slot, setSlot] = useState(isoLocalDateTime(tomorrow));
   const [note, setNote] = useState("");
   const [err, setErr] = useState<string>();
+  const [booked, setBooked] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
   const min = isoLocalDateTime(new Date(Date.now() + 60 * 60_000));
+  const close = () => { setBooked(null); onClose(); };
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    try { requestVisit(listingId, slot, note); toast("Visit requested. You'll see it confirmed under Visits."); onClose(); }
-    catch (e) { setErr(errorMessage(e)); }
+    try { const v = requestVisit(listingId, slot, note); setBooked(v.slot); }
+    catch (e) { setErr(errorMessage(e)); shake(formRef.current); document.getElementById("slot")?.focus(); }
   };
+  if (booked) {
+    return (
+      <Dialog open={open} onClose={close} title="Visit requested">
+        <div className="grid justify-items-center gap-3 text-center">
+          <svg viewBox="0 0 64 64" width="84" height="84" aria-hidden className="anim-pop">
+            <rect x="8" y="12" width="48" height="44" rx="8" fill="var(--brand-soft)" stroke="var(--brand)" strokeWidth="3" />
+            <path d="M8 24h48" stroke="var(--brand)" strokeWidth="3" />
+            <path d="M20 8v9M44 8v9" stroke="var(--brand)" strokeWidth="3" strokeLinecap="round" />
+            <path d="M22 39l7 7 13-14" fill="none" stroke="var(--ok)" strokeWidth="4.5" strokeLinecap="round" strokeLinejoin="round" className="anim-draw" style={{ "--len": 34, animationDelay: "220ms" } as CSSProperties} />
+          </svg>
+          <p className="text-lg font-bold">{niceSlot(booked)}</p>
+          <p className="text-muted">We've asked the lister to confirm. You'll see the update under Visits, and the exact address is shared once it's confirmed.</p>
+          <div className="flex flex-wrap justify-center gap-2">
+            <button type="button" className="btn-primary" onClick={close}>Done</button>
+            <Link to="/visits" className="btn-secondary" onClick={() => setBooked(null)}>See your visits</Link>
+          </div>
+        </div>
+      </Dialog>
+    );
+  }
   return (
-    <Dialog open={open} onClose={onClose} title="Book a visit">
-      <form onSubmit={submit} noValidate className="grid gap-4">
+    <Dialog open={open} onClose={close} title="Book a visit">
+      <form ref={formRef} onSubmit={submit} noValidate className="grid gap-4">
         <Field id="slot" label="Date and time" hint="Between 8 am and 9 pm. The lister confirms or suggests another time." error={err}>
           {(a) => <input {...a} type="datetime-local" required min={min} step={900} className="input" value={slot} onChange={(e) => { setSlot(e.target.value); setErr(undefined); }} />}
         </Field>
@@ -260,14 +285,15 @@ function ReportDialog({ open, onClose, listingId }: { open: boolean; onClose: ()
   const [reason, setReason] = useState("");
   const [detail, setDetail] = useState("");
   const [err, setErr] = useState<string>();
+  const formRef = useRef<HTMLFormElement>(null);
   const submit = (e: FormEvent) => {
     e.preventDefault();
     try { reportListing(listingId, reason, detail); toast("Thanks. Our team will review this listing."); onClose(); }
-    catch (e) { setErr(errorMessage(e)); }
+    catch (e) { setErr(errorMessage(e)); shake(formRef.current); }
   };
   return (
     <Dialog open={open} onClose={onClose} title="Report this listing">
-      <form onSubmit={submit} noValidate className="grid gap-4">
+      <form ref={formRef} onSubmit={submit} noValidate className="grid gap-4">
         <fieldset className="grid gap-2">
           <legend className="label mb-1">What's wrong?</legend>
           {REASONS.map((r) => (

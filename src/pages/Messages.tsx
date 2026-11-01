@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { LuArrowLeft, LuInbox, LuLock, LuSend, LuTrash2 } from "react-icons/lu";
 import { Avatar, Dialog, Empty, useToast } from "../components/ui";
-import { deleteThread, findListing, markRead, sendMessage, useStore } from "../data/store";
+import { deleteThread, findListing, markRead, sendMessage, useStore, useTyping } from "../data/store";
 import { errorMessage } from "../lib/errors";
 import { relTime } from "../lib/format";
 import { Link, navigate, useTitle } from "../lib/router";
@@ -63,10 +63,13 @@ function Conversation({ threadId }: { threadId: string }) {
   const [text, setText] = useState("");
   const [err, setErr] = useState<string>();
   const [confirm, setConfirm] = useState(false);
-  const endRef = useRef<HTMLDivElement>(null);
+  const endRef = useRef<HTMLLIElement>(null);
   const toast = useToast();
+  const typing = useTyping(threadId);
+  // Messages already here when the thread opens appear at once; only new ones animate in.
+  const openedAt = useRef(Date.now());
 
-  useEffect(() => { markRead(threadId); endRef.current?.scrollIntoView({ block: "end" }); }, [threadId, msgs.length]);
+  useEffect(() => { markRead(threadId); endRef.current?.scrollIntoView({ block: "end", behavior: "smooth" }); }, [threadId, msgs.length, typing]);
 
   const send = (e: FormEvent) => {
     e.preventDefault();
@@ -91,13 +94,20 @@ function Conversation({ threadId }: { threadId: string }) {
       <ol className="flex flex-1 flex-col gap-2 overflow-y-auto p-4" aria-live="polite" aria-label="Messages">
         <li className="mx-auto mb-2 flex max-w-sm items-center gap-2 rounded-xl bg-raised px-3 py-2 text-center text-xs text-muted"><LuLock aria-hidden className="shrink-0" />Phone numbers and emails are hidden in chat. Meet first, then share.</li>
         {msgs.map((m) => (
-          <li key={m.id} className={`max-w-[80%] rounded-2xl px-3.5 py-2 ${m.from === "me" ? "self-end rounded-br-md bg-brand text-brand-ink" : "self-start rounded-bl-md bg-raised"}`}>
+          <li key={m.id} className={`max-w-[80%] rounded-2xl px-3.5 py-2 ${m.at >= openedAt.current ? (m.from === "me" ? "anim-in-right" : "anim-in-left") : ""} ${m.from === "me" ? "self-end rounded-br-md bg-brand text-brand-ink" : "self-start rounded-bl-md bg-raised"}`}>
             <span className="sr-only">{m.from === "me" ? "You" : thread.withName}: </span>
             <p className="whitespace-pre-wrap break-words">{m.text}</p>
             <p className={`mt-0.5 text-[0.7rem] ${m.from === "me" ? "text-brand-ink/75" : "text-muted"}`}>{relTime(m.at)}{m.redacted ? " · contact details hidden" : ""}</p>
           </li>
         ))}
-        <div ref={endRef} />
+        {typing && (
+          <li className="anim-rise self-start rounded-2xl rounded-bl-md bg-raised px-4 py-3" aria-label={`${thread.withName} is typing`}>
+            <span aria-hidden className="flex gap-1">
+              {[0, 1, 2].map((i) => <span key={i} className="typing-dot h-2 w-2 rounded-full bg-muted" style={{ animationDelay: `${i * 160}ms` }} />)}
+            </span>
+          </li>
+        )}
+        <li ref={endRef} aria-hidden className="h-0 list-none" />
       </ol>
       <form onSubmit={send} className="grid gap-1 border-t border-line p-3">
         <div className="flex items-end gap-2">

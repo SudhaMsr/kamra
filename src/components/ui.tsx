@@ -6,7 +6,7 @@ import type { Listing } from "../domain/types";
 import { initials } from "../lib/format";
 
 /* ---------- toasts (announced politely to screen readers) ---------- */
-type Toast = { id: number; text: string; tone: "ok" | "error" };
+type Toast = { id: number; text: string; tone: "ok" | "error"; leaving?: boolean };
 const ToastCtx = createContext<(text: string, tone?: Toast["tone"]) => void>(() => {});
 export const useToast = () => useContext(ToastCtx);
 
@@ -16,14 +16,18 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const push = useCallback((text: string, tone: Toast["tone"] = "ok") => {
     const id = ++seq.current;
     setItems((x) => [...x.slice(-2), { id, text, tone }]);
-    window.setTimeout(() => setItems((x) => x.filter((t) => t.id !== id)), tone === "error" ? 6000 : 3500);
+    // Fade out first, then remove, so toasts leave as smoothly as they arrive.
+    window.setTimeout(() => {
+      setItems((x) => x.map((t) => (t.id === id ? { ...t, leaving: true } : t)));
+      window.setTimeout(() => setItems((x) => x.filter((t) => t.id !== id)), 240);
+    }, tone === "error" ? 6000 : 3500);
   }, []);
   return (
     <ToastCtx.Provider value={push}>
       {children}
       <div aria-live="polite" role="status" className="pointer-events-none fixed inset-x-0 bottom-20 z-50 flex flex-col items-center gap-2 px-4 md:bottom-6">
         {items.map((t) => (
-          <div key={t.id} className={`pointer-events-auto flex max-w-md items-start gap-2 rounded-xl px-4 py-3 text-sm font-semibold shadow-lg ${t.tone === "error" ? "bg-warn text-white dark:text-paper" : "bg-ink text-paper"}`}>
+          <div key={t.id} className={`pointer-events-auto flex max-w-md items-start gap-2 rounded-xl px-4 py-3 text-sm font-semibold shadow-lg ${t.leaving ? "anim-out" : "anim-rise"} ${t.tone === "error" ? "bg-warn text-white dark:text-paper" : "bg-ink text-paper"}`}>
             {t.tone === "error" ? <LuTriangleAlert aria-hidden className="mt-0.5 shrink-0" /> : <LuCircleCheck aria-hidden className="mt-0.5 shrink-0" />}
             <span>{t.text}</span>
           </div>
@@ -78,7 +82,7 @@ export function Field({ label, hint, error, children, id }: { label: string; hin
       <label htmlFor={id} className="label">{label}</label>
       {children({ id, "aria-invalid": !!error, "aria-describedby": desc })}
       {hint && <p id={id + "-hint"} className="hint">{hint}</p>}
-      {error && <p id={id + "-err"} className="error">{error}</p>}
+      {error && <p id={id + "-err"} className="error anim-rise">{error}</p>}
     </div>
   );
 }

@@ -1,9 +1,10 @@
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { LuBadgeCheck, LuLogOut, LuTrash2, LuUser } from "react-icons/lu";
 import { ChoiceGroup, Dialog, Empty, Field, Toggle, useToast } from "../components/ui";
 import { ROLES, deleteAccount, isPersistent, logOut, saveProfile, setRole, useStore, type Role } from "../data/store";
 import { CITIES, DIETS, GUESTS, Profile as ProfileZ, SHIFTS, fieldErrors, type City, type Profile } from "../domain/types";
 import { errorMessage } from "../lib/errors";
+import { shake } from "../lib/motion";
 import { Link, navigate, useTitle } from "../lib/router";
 
 type Form = Omit<Profile, "budget" | "age"> & { budget: string; age: string };
@@ -29,6 +30,7 @@ function ProfileForm({ existing, email, role }: { existing: Profile; email: stri
   const [f, setF] = useState<Form>({ ...existing, budget: String(existing.budget), age: String(existing.age) });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
   const set = <K extends keyof Form>(k: K, v: Form[K]) => { setF((x) => ({ ...x, [k]: v })); setErrors((e) => { const { [k as string]: _, ...rest } = e; return rest; }); };
 
   const submit = (e: FormEvent) => {
@@ -37,7 +39,8 @@ function ProfileForm({ existing, email, role }: { existing: Profile; email: stri
     if (!r.success) {
       const errs = fieldErrors(r.error);
       setErrors(errs);
-      document.getElementById(`p-${Object.keys(errs)[0]}`)?.focus();
+      shake(formRef.current);
+      requestAnimationFrame(() => formRef.current?.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus());
       toast("Some details need fixing.", "error");
       return;
     }
@@ -61,7 +64,7 @@ function ProfileForm({ existing, email, role }: { existing: Profile; email: stri
           options={Object.entries(ROLES) as Array<[Role, string]>} />
       </section>
 
-      <form onSubmit={submit} noValidate className="grid gap-6">
+      <form ref={formRef} onSubmit={submit} noValidate className="grid gap-6">
         <section className="card grid gap-5 p-5 sm:p-7" aria-labelledby="about-you">
           <h2 id="about-you" className="text-lg font-bold">About you</h2>
           <div className="grid gap-4 sm:grid-cols-2">

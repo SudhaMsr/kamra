@@ -89,3 +89,61 @@ def test_reduced_motion_skips_the_loading_delay(browser):
     durations = page.evaluate("[...document.querySelectorAll('.anim-rise')].slice(0,3).map(e => getComputedStyle(e).animationDuration)")
     assert all(d in ("1e-06s", "0.001ms", "0s") or d.endswith("e-06s") for d in durations), durations
     ctx.close()
+
+
+# ---------- batch 3: forms and feedback ----------
+
+def test_typing_indicator_shows_before_the_reply(page: Page):
+    create_profile(page)
+    go(page, "/rooms/d001")
+    page.get_by_role("button", name=re.compile("^Message")).click()
+    page.get_by_role("dialog").get_by_role("button", name="Send message").click()
+    log = page.get_by_role("list", name="Messages")
+    typing = log.get_by_role("listitem", name=re.compile("is typing"))
+    expect(typing).to_be_visible()
+    expect(log).to_contain_text("still available", timeout=5000)
+    expect(typing).to_have_count(0)
+
+
+def test_post_room_errors_focus_first_bad_field_and_steps_slide(page: Page):
+    create_profile(page, city="Pune")
+    go(page, "/post")
+    page.get_by_label("Rent per month (₹)").fill("12000")
+    page.get_by_role("button", name="Continue").click()
+    # Headline is the first field on screen with a problem, so it gets focus.
+    expect(page.get_by_label("Headline")).to_be_focused()
+    expect(page.locator("#title-err")).to_be_visible()
+    steps = page.get_by_role("navigation", name="Steps")
+    expect(steps.locator("[aria-current=step]")).to_contain_text("The room")
+
+
+def test_visit_dialog_errors_keep_focus_on_the_date(page: Page):
+    create_profile(page)
+    go(page, "/rooms/d004")
+    page.get_by_role("button", name="Book a visit").click()
+    dlg = page.get_by_role("dialog")
+    dlg.get_by_label("Date and time").fill("2020-01-01T10:00")
+    dlg.get_by_role("button", name="Request visit").click()
+    expect(dlg.locator("#slot-err")).to_be_visible()
+    expect(dlg.get_by_label("Date and time")).to_be_focused()
+
+
+def test_toasts_leave_on_their_own(page: Page):
+    go(page, "/search?city=Pune&near=pun-hinjewadi")
+    wait_idle(page)
+    page.locator("article").first.get_by_role("button", name=re.compile("^Save")).click()
+    toast = page.get_by_role("status").filter(has_text="Saved.")
+    expect(toast).to_be_visible()
+    expect(toast).to_have_count(0, timeout=6000)
+
+
+def test_feedback_works_with_reduced_motion(browser):
+    ctx = browser.new_context(viewport={"width": 1280, "height": 900}, reduced_motion="reduce")
+    page = ctx.new_page()
+    create_profile(page)
+    go(page, "/rooms/d003")
+    page.get_by_role("button", name="Book a visit").click()
+    page.get_by_role("dialog").get_by_label("Date and time").fill("2031-06-12T18:30")
+    page.get_by_role("dialog").get_by_role("button", name="Request visit").click()
+    expect(page.get_by_role("dialog", name="Visit requested")).to_be_visible()
+    ctx.close()

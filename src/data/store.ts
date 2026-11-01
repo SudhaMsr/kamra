@@ -343,6 +343,10 @@ export function sendMessage(threadId: string, raw: string): Message {
   return m;
 }
 export const isTyping = (threadId: string) => pending.has(threadId);
+/** True while the other person in a thread is "typing" a reply. */
+export function useTyping(threadId: string): boolean {
+  return useSyncExternalStore(subscribe, () => pending.has(threadId), () => false);
+}
 export function markRead(threadId: string) {
   const t = view.threads.find((x) => x.id === threadId);
   if (!t) return;
